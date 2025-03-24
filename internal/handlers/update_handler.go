@@ -13,7 +13,7 @@ func (h *handler) updateHandler() http.HandlerFunc {
 			return
 		}
 
-		path := strings.TrimPrefix(r.URL.Path, "/update")
+		path := strings.TrimPrefix(r.URL.Path, "/update/")
 		parts := strings.Split(path, "/")
 
 		if len(parts) != 3 {
