@@ -29,5 +29,6 @@ func StartAgent() {
 		}
 	}()
 
+	log.Println("Starting agent...")
 	select {}
 }
