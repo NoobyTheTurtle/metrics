@@ -1,8 +1,8 @@
 package storage
 
 func (ms *MemStorage) GetGauge(name string) (float64, bool) {
-	value, ok := ms.gauges[name]
-	return value, ok
+	value, exists := ms.gauges[name]
+	return value, exists
 }
 
 func (ms *MemStorage) UpdateGauge(name string, value float64) error {

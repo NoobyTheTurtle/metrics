@@ -14,7 +14,7 @@ func InitHandlers(serverAddress string, storage ServerStorage) error {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/update/", Conveyor(h.updateHandler(), setContentTypeMiddleware, loggingMiddleware))
+	mux.Handle("/update/", conveyor(h.updateHandler(), setContentTypeMiddleware, loggingMiddleware))
 
 	return http.ListenAndServe(serverAddress, mux)
 }

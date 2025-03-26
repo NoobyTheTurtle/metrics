@@ -7,7 +7,7 @@ import (
 
 type Middleware func(http.Handler) http.Handler
 
-func Conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
+func conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
 	for _, middleware := range middlewares {
 		h = middleware(h)
 	}

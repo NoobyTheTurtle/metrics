@@ -1,8 +1,8 @@
 package storage
 
 func (ms *MemStorage) GetCounter(name string) (int64, bool) {
-	value, ok := ms.counters[name]
-	return value, ok
+	value, exists := ms.counters[name]
+	return value, exists
 }
 
 func (ms *MemStorage) UpdateCounter(name string, value int64) error {
