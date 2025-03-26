@@ -1,10 +1,18 @@
 package metrics
 
 import (
+	"math/rand"
 	"runtime"
+	"time"
 )
 
 func (m *Metrics) UpdateMetrics() {
+	m.updateGaugeMemStats()
+	m.updateGaugeRandomValue()
+	m.updateCounters()
+}
+
+func (m *Metrics) updateGaugeMemStats() {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
@@ -35,7 +43,15 @@ func (m *Metrics) UpdateMetrics() {
 	m.Gauges[StackSys] = float64(memStats.StackSys)
 	m.Gauges[Sys] = float64(memStats.Sys)
 	m.Gauges[TotalAlloc] = float64(memStats.TotalAlloc)
+}
 
-	m.Gauges[RandomValue] = m.random.Float64()
+func (m *Metrics) updateGaugeRandomValue() {
+	source := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(source)
+
+	m.Gauges[RandomValue] = random.Float64()
+}
+
+func (m *Metrics) updateCounters() {
 	m.Counters[PollCount]++
 }
