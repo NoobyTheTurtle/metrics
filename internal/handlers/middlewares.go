@@ -14,13 +14,6 @@ func conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
 	return h
 }
 
-func setContentTypeMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/plain")
-		next.ServeHTTP(w, r)
-	})
-}
-
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Incoming request: %s %s", r.Method, r.URL.Path)
