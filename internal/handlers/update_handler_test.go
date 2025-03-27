@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+var _ ServerStorage = (*mockStorage)(nil)
 
 type mockStorage struct {
 	gauges            map[string]float64
