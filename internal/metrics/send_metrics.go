@@ -25,13 +25,13 @@ func (m *Metrics) SendMetrics() {
 
 func sendMetric(url string) {
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", url, nil)
+	req, err := http.NewRequest(http.MethodPost, url, http.NoBody)
 	if err != nil {
 		log.Printf("Error creating request: %v", err)
 		return
 	}
 
-	req.Header.Add("Content-Type", "text/plain")
+	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
 
 	resp, err := client.Do(req)
 	if err != nil {
