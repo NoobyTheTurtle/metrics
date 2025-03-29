@@ -25,25 +25,25 @@ func NewStdLogger(level LogLevel) *StdLogger {
 	}
 }
 
-func (l *StdLogger) Info(format string, args ...interface{}) {
+func (l *StdLogger) Info(format string, args ...any) {
 	if l.level <= InfoLevel {
 		log.Printf("[INFO] "+format, args...)
 	}
 }
 
-func (l *StdLogger) Error(format string, args ...interface{}) {
+func (l *StdLogger) Error(format string, args ...any) {
 	if l.level <= ErrorLevel {
 		log.Printf("[ERROR] "+format, args...)
 	}
 }
 
-func (l *StdLogger) Debug(format string, args ...interface{}) {
+func (l *StdLogger) Debug(format string, args ...any) {
 	if l.level <= DebugLevel {
 		log.Printf("[DEBUG] "+format, args...)
 	}
 }
 
-func (l *StdLogger) Warn(format string, args ...interface{}) {
+func (l *StdLogger) Warn(format string, args ...any) {
 	if l.level <= WarnLevel {
 		log.Printf("[WARN] "+format, args...)
 	}

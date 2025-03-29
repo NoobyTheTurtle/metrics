@@ -17,25 +17,25 @@ func NewMockLogger() *MockLogger {
 	}
 }
 
-func (l *MockLogger) Info(format string, args ...interface{}) {
+func (l *MockLogger) Info(format string, args ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.buffer.WriteString(fmt.Sprintf("[INFO] "+format+"\n", args...))
 }
 
-func (l *MockLogger) Error(format string, args ...interface{}) {
+func (l *MockLogger) Error(format string, args ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.buffer.WriteString(fmt.Sprintf("[ERROR] "+format+"\n", args...))
 }
 
-func (l *MockLogger) Debug(format string, args ...interface{}) {
+func (l *MockLogger) Debug(format string, args ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.buffer.WriteString(fmt.Sprintf("[DEBUG] "+format+"\n", args...))
 }
 
-func (l *MockLogger) Warn(format string, args ...interface{}) {
+func (l *MockLogger) Warn(format string, args ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.buffer.WriteString(fmt.Sprintf("[WARN] "+format+"\n", args...))
