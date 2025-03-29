@@ -7,8 +7,8 @@ SERVER_BIN = $(SERVER_DIR)/server
 
 .PHONY: test
 test:
-	@echo "Running tests without cache..."
-	@go test -v -count=1 ./...
+	@echo "Running tests..."
+	@go test -count=1 ./...
 
 .PHONY: test-cover
 test-cover:
@@ -51,7 +51,7 @@ clean:
 .PHONY: help
 help:
 	@echo "Available commands:"
-	@echo "  make test         - Run tests without cache"
+	@echo "  make test         - Run tests"
 	@echo "  make test-cover   - Run tests with coverage report"
 	@echo "  make build-agent  - Build agent"
 	@echo "  make build-server - Build server"
