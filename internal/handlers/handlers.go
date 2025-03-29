@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type handler struct {
@@ -13,8 +15,9 @@ func InitHandlers(serverAddress string, storage ServerStorage) error {
 		storage,
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("/update/", conveyor(h.updateHandler(), loggingMiddleware))
+	r := chi.NewRouter()
+	r.Use(loggingMiddleware)
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.updateHandler())
 
-	return http.ListenAndServe(serverAddress, mux)
+	return http.ListenAndServe(serverAddress, r)
 }

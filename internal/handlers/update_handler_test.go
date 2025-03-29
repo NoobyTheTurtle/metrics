@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -50,6 +52,20 @@ func (m *mockStorage) GetGauge(name string) (float64, bool) {
 func (m *mockStorage) GetCounter(name string) (int64, bool) {
 	value, ok := m.counters[name]
 	return value, ok
+}
+
+func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, nil)
+	require.NoError(t, err)
+
+	resp, err := ts.Client().Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	return resp, string(respBody)
 }
 
 func Test_handler_updateHandler(t *testing.T) {
@@ -135,15 +151,20 @@ func Test_handler_updateHandler(t *testing.T) {
 				storage: storage,
 			}
 
-			req, err := http.NewRequest(tt.method, tt.url, nil)
-			require.NoError(t, err)
+			r := chi.NewRouter()
+			r.Post("/update/{metricType}/{metricName}/{metricValue}", h.updateHandler())
 
-			rr := httptest.NewRecorder()
+			ts := httptest.NewServer(r)
+			defer ts.Close()
 
-			h.updateHandler()(rr, req)
+			resp, _ := testRequest(t, ts, tt.method, tt.url)
 
-			assert.Equal(t, tt.expectedStatusCode, rr.Code, "Expected status code %d, got %d", tt.expectedStatusCode, rr.Code)
-			assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"), "Expected Content-Type text/plain; charset=utf-8, got %s", rr.Header().Get("Content-Type"))
+			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)
+
+			if resp.StatusCode == http.StatusOK {
+				assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"),
+					"Expected Content-Type text/plain; charset=utf-8, got %s", resp.Header.Get("Content-Type"))
+			}
 		})
 	}
 }

@@ -3,29 +3,17 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func (h *handler) updateHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		path := strings.TrimPrefix(r.URL.Path, "/update/")
-		parts := strings.Split(path, "/")
-
-		if len(parts) != 3 {
-			http.Error(w, "Invalid request format", http.StatusNotFound)
-			return
-		}
-
-		metricType := MetricType(parts[0])
-		metricName := parts[1]
-		metricValue := parts[2]
+		metricType := MetricType(chi.URLParam(r, "metricType"))
+		metricName := chi.URLParam(r, "metricName")
+		metricValue := chi.URLParam(r, "metricValue")
 
 		if metricName == "" {
 			http.Error(w, "Metric name is required", http.StatusNotFound)
