@@ -60,7 +60,6 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.
 
 	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -158,6 +157,7 @@ func Test_handler_updateHandler(t *testing.T) {
 			defer ts.Close()
 
 			resp, _ := testRequest(t, ts, tt.method, tt.url)
+			defer resp.Body.Close()
 
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)
 
