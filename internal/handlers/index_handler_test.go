@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -83,7 +84,7 @@ func Test_handler_indexHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupStorage       func(*mockStorage)
+		setupStorage       func(*storage.MockStorage)
 		expectedStatusCode int
 		expectedContains   []string
 	}{
@@ -91,10 +92,10 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "successful metrics page retrieval",
 			method: http.MethodGet,
 			url:    "/",
-			setupStorage: func(m *mockStorage) {
-				m.gauges["Alloc"] = 15.5
-				m.gauges["BuckHashSys"] = 30.25
-				m.counters["PollCount"] = 30
+			setupStorage: func(m *storage.MockStorage) {
+				m.UpdateGauge("Alloc", 15.5)
+				m.UpdateGauge("BuckHashSys", 30.25)
+				m.UpdateCounter("PollCount", 30)
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -113,7 +114,7 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "empty metrics",
 			method: http.MethodGet,
 			url:    "/",
-			setupStorage: func(m *mockStorage) {
+			setupStorage: func(m *storage.MockStorage) {
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -126,7 +127,7 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:               "wrong method",
 			method:             http.MethodPost,
 			url:                "/",
-			setupStorage:       func(m *mockStorage) {},
+			setupStorage:       func(m *storage.MockStorage) {},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 			expectedContains:   nil,
 		},
@@ -134,7 +135,7 @@ func Test_handler_indexHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storage := newMockStorage()
+			storage := storage.NewMockStorage()
 			tt.setupStorage(storage)
 
 			h := &handler{

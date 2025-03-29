@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +15,7 @@ func Test_handler_valueHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupStorage       func(*mockStorage)
+		setupStorage       func(*storage.MockStorage)
 		expectedStatusCode int
 		expectedBody       string
 	}{
@@ -22,8 +23,8 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "successful gauge retrieval",
 			method: http.MethodGet,
 			url:    "/value/gauge/HeapObjects",
-			setupStorage: func(m *mockStorage) {
-				m.gauges["HeapObjects"] = 1.2
+			setupStorage: func(m *storage.MockStorage) {
+				m.UpdateGauge("HeapObjects", 1.2)
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       "1.2",
@@ -32,8 +33,8 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "successful counter retrieval",
 			method: http.MethodGet,
 			url:    "/value/counter/PollCount",
-			setupStorage: func(m *mockStorage) {
-				m.counters["PollCount"] = 30
+			setupStorage: func(m *storage.MockStorage) {
+				m.UpdateCounter("PollCount", 30)
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       "30",
@@ -42,7 +43,7 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:               "gauge not found",
 			method:             http.MethodGet,
 			url:                "/value/gauge/NonExistentGauge",
-			setupStorage:       func(m *mockStorage) {},
+			setupStorage:       func(m *storage.MockStorage) {},
 			expectedStatusCode: http.StatusNotFound,
 			expectedBody:       "Gauge not found\n",
 		},
@@ -50,7 +51,7 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:               "counter not found",
 			method:             http.MethodGet,
 			url:                "/value/counter/NonExistentCounter",
-			setupStorage:       func(m *mockStorage) {},
+			setupStorage:       func(m *storage.MockStorage) {},
 			expectedStatusCode: http.StatusNotFound,
 			expectedBody:       "Counter not found\n",
 		},
@@ -58,14 +59,14 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:               "wrong method",
 			method:             http.MethodPost,
 			url:                "/value/gauge/HeapObjects",
-			setupStorage:       func(m *mockStorage) {},
+			setupStorage:       func(m *storage.MockStorage) {},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 		},
 		{
 			name:               "unknown metric type",
 			method:             http.MethodGet,
 			url:                "/value/unknown/Metric",
-			setupStorage:       func(m *mockStorage) {},
+			setupStorage:       func(m *storage.MockStorage) {},
 			expectedStatusCode: http.StatusNotFound,
 			expectedBody:       "Unknown metric type\n",
 		},
@@ -73,7 +74,7 @@ func Test_handler_valueHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storage := newMockStorage()
+			storage := storage.NewMockStorage()
 			tt.setupStorage(storage)
 
 			h := &handler{

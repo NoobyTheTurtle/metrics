@@ -3,14 +3,15 @@ package apps
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/configs"
 	"github.com/NoobyTheTurtle/metrics/internal/handlers"
+	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/NoobyTheTurtle/metrics/internal/storage"
-	"log"
 )
 
 func StartServer() error {
 	config := configs.NewServerConfig()
 	store := storage.NewMemStorage()
+	log := logger.NewStdLogger(logger.DebugLevel)
 
-	log.Println("Starting server...")
-	return handlers.InitHandlers(config.ServerAddress, store)
+	log.Info("Starting server...")
+	return handlers.InitHandlers(config.ServerAddress, store, log)
 }

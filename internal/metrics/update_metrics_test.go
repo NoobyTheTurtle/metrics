@@ -3,11 +3,12 @@ package metrics
 import (
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMetrics_UpdateMetrics(t *testing.T) {
-	metrics := NewMetrics("localhost:8080")
+	metrics := NewMetrics("localhost:8080", logger.NewMockLogger())
 
 	_, exists := metrics.Gauges[HeapObjects]
 	assert.False(t, exists, "HeapObjects should not exist before update")
@@ -32,7 +33,7 @@ func TestMetrics_UpdateMetrics(t *testing.T) {
 }
 
 func TestMetrics_updateGaugeMemStats(t *testing.T) {
-	metrics := NewMetrics("localhost:8080")
+	metrics := NewMetrics("localhost:8080", logger.NewMockLogger())
 
 	metrics.updateGaugeMemStats()
 
@@ -54,7 +55,7 @@ func TestMetrics_updateGaugeMemStats(t *testing.T) {
 }
 
 func TestMetrics_updateGaugeRandomValue(t *testing.T) {
-	metrics := NewMetrics("localhost:8080")
+	metrics := NewMetrics("localhost:8080", logger.NewMockLogger())
 
 	metrics.updateGaugeRandomValue()
 
@@ -91,7 +92,7 @@ func TestMetrics_updateCounters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			metrics := NewMetrics("localhost:8080")
+			metrics := NewMetrics("localhost:8080", logger.NewMockLogger())
 
 			if tt.initialPollCount > 0 {
 				metrics.Counters[PollCount] = tt.initialPollCount

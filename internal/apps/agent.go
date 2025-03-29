@@ -1,22 +1,24 @@
 package apps
 
 import (
-	"github.com/NoobyTheTurtle/metrics/internal/configs"
-	"github.com/NoobyTheTurtle/metrics/internal/metrics"
-	"log"
 	"time"
+
+	"github.com/NoobyTheTurtle/metrics/internal/configs"
+	"github.com/NoobyTheTurtle/metrics/internal/logger"
+	"github.com/NoobyTheTurtle/metrics/internal/metrics"
 )
 
 func StartAgent() {
 	config := configs.NewAgentConfig()
-	metric := metrics.NewMetrics(config.ServerAddress)
+	log := logger.NewStdLogger(logger.DebugLevel)
+	metric := metrics.NewMetrics(config.ServerAddress, log)
 
 	go func() {
 		for {
 			time.Sleep(config.PollInterval)
 
 			metric.UpdateMetrics()
-			log.Println("Metrics updated")
+			log.Info("Metrics updated")
 		}
 	}()
 
@@ -25,10 +27,10 @@ func StartAgent() {
 			time.Sleep(config.ReportInterval)
 
 			metric.SendMetrics()
-			log.Println("Metrics sent to server")
+			log.Info("Metrics sent to server")
 		}
 	}()
 
-	log.Println("Starting agent...")
+	log.Info("Starting agent...")
 	select {}
 }

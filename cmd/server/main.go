@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/NoobyTheTurtle/metrics/internal/apps"
 	"log"
+
+	"github.com/NoobyTheTurtle/metrics/internal/apps"
 )
 
 func main() {

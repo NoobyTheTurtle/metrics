@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -84,12 +85,12 @@ func Test_handler_updateHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storage := newMockStorage()
-			storage.shouldFailGauge = tt.shouldFailGauge
-			storage.shouldFailCounter = tt.shouldFailCounter
+			mockStorage := storage.NewMockStorage()
+			mockStorage.SetShouldFailGauge(tt.shouldFailGauge)
+			mockStorage.SetShouldFailCounter(tt.shouldFailCounter)
 
 			h := &handler{
-				storage: storage,
+				storage: mockStorage,
 			}
 
 			r := chi.NewRouter()

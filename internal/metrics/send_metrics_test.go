@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -86,10 +87,12 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			}))
 			defer server.Close()
 
+			mockLogger := logger.NewMockLogger()
 			metrics := &Metrics{
 				Gauges:        tt.gauges,
 				Counters:      tt.counters,
 				serverAddress: server.URL,
+				logger:        mockLogger,
 			}
 
 			metrics.SendMetrics()
@@ -128,7 +131,8 @@ func TestSendMetric(t *testing.T) {
 			}))
 			defer server.Close()
 
-			sendMetric(server.URL + "/update/gauge/testMetric/1.1")
+			mockLogger := logger.NewMockLogger()
+			sendMetric(server.URL+"/update/gauge/testMetric/1.1", mockLogger)
 		})
 	}
 }

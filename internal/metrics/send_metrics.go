@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -14,20 +13,20 @@ const (
 func (m *Metrics) SendMetrics() {
 	for name, value := range m.Gauges {
 		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverAddress, Gauge, name, value)
-		sendMetric(url)
+		sendMetric(url, m.logger)
 	}
 
 	for name, value := range m.Counters {
 		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverAddress, Counter, name, value)
-		sendMetric(url)
+		sendMetric(url, m.logger)
 	}
 }
 
-func sendMetric(url string) {
+func sendMetric(url string, logger Logger) {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPost, url, http.NoBody)
 	if err != nil {
-		log.Printf("Error creating request: %v", err)
+		logger.Error("Error creating request: %v", err)
 		return
 	}
 
@@ -35,12 +34,12 @@ func sendMetric(url string) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Error sending request: %v", err)
+		logger.Error("Error sending request: %v", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Server returned status code: %d", resp.StatusCode)
+		logger.Warn("Server returned status code: %d", resp.StatusCode)
 	}
 }
