@@ -1,5 +1,11 @@
 package metrics
 
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
 type GaugeMetric string
 
 const (
@@ -44,13 +50,26 @@ type Metrics struct {
 	Counters  map[CounterMetric]int64
 	serverURL string
 	logger    Logger
+	random    *rand.Rand
 }
 
-func NewMetrics(serverAddress string, log Logger) *Metrics {
+func NewMetrics(serverAddress string, log Logger, useTLS bool) *Metrics {
+	protocol := "http"
+
+	if useTLS {
+		protocol = "https"
+	}
+
+	serverURL := fmt.Sprintf("%s://%s", protocol, serverAddress)
+
+	source := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(source)
+
 	return &Metrics{
 		Gauges:    make(map[GaugeMetric]float64),
 		Counters:  make(map[CounterMetric]int64),
-		serverURL: "http://" + serverAddress,
+		serverURL: serverURL,
 		logger:    log,
+		random:    random,
 	}
 }

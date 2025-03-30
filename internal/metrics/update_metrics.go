@@ -1,9 +1,7 @@
 package metrics
 
 import (
-	"math/rand"
 	"runtime"
-	"time"
 )
 
 func (m *Metrics) UpdateMetrics() {
@@ -46,10 +44,7 @@ func (m *Metrics) updateGaugeMemStats() {
 }
 
 func (m *Metrics) updateGaugeRandomValue() {
-	source := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(source)
-
-	m.Gauges[RandomValue] = random.Float64()
+	m.Gauges[RandomValue] = m.random.Float64()
 }
 
 func (m *Metrics) updateCounters() {

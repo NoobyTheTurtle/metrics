@@ -15,7 +15,7 @@ func StartAgent() error {
 	}
 
 	log := logger.NewStdLogger(logger.DebugLevel)
-	metric := metrics.NewMetrics(config.ServerAddress, log)
+	metric := metrics.NewMetrics(config.ServerAddress, log, false)
 
 	go func() {
 		for {
