@@ -42,7 +42,7 @@ const (
 type Metrics struct {
 	Gauges    map[GaugeMetric]float64
 	Counters  map[CounterMetric]int64
-	serverUrl string
+	serverURL string
 	logger    Logger
 }
 
@@ -50,7 +50,7 @@ func NewMetrics(serverAddress string, log Logger) *Metrics {
 	return &Metrics{
 		Gauges:    make(map[GaugeMetric]float64),
 		Counters:  make(map[CounterMetric]int64),
-		serverUrl: "http://" + serverAddress,
+		serverURL: "http://" + serverAddress,
 		logger:    log,
 	}
 }

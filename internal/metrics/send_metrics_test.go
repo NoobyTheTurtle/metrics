@@ -91,7 +91,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			metrics := &Metrics{
 				Gauges:    tt.gauges,
 				Counters:  tt.counters,
-				serverUrl: server.URL,
+				serverURL: server.URL,
 				logger:    mockLogger,
 			}
 
