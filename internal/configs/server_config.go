@@ -3,6 +3,7 @@ package configs
 import (
 	"flag"
 	"fmt"
+	"os"
 )
 
 type ServerConfig struct {
@@ -18,6 +19,10 @@ func NewServerConfig() (*ServerConfig, error) {
 		return nil, err
 	}
 
+	if err := config.parseEnv(); err != nil {
+		return nil, err
+	}
+
 	return config, nil
 }
 
@@ -28,6 +33,14 @@ func (c *ServerConfig) parseFlags() error {
 
 	if flag.NArg() > 0 {
 		return fmt.Errorf("unknown command line arguments: %v", flag.Args())
+	}
+
+	return nil
+}
+
+func (c *ServerConfig) parseEnv() error {
+	if addr := os.Getenv("ADDRESS"); addr != "" {
+		c.ServerAddress = addr
 	}
 
 	return nil

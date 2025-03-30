@@ -3,6 +3,8 @@ package configs
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -23,6 +25,10 @@ func NewAgentConfig() (*AgentConfig, error) {
 		return nil, err
 	}
 
+	if err := config.parseEnv(); err != nil {
+		return nil, err
+	}
+
 	return config, nil
 }
 
@@ -40,6 +46,30 @@ func (c *AgentConfig) parseFlags() error {
 
 	if flag.NArg() > 0 {
 		return fmt.Errorf("unknown command line arguments: %v", flag.Args())
+	}
+
+	return nil
+}
+
+func (c *AgentConfig) parseEnv() error {
+	if addr := os.Getenv("ADDRESS"); addr != "" {
+		c.ServerAddress = addr
+	}
+
+	if pollStr := os.Getenv("POLL_INTERVAL"); pollStr != "" {
+		pollSec, err := strconv.Atoi(pollStr)
+		if err != nil {
+			return fmt.Errorf("invalid POLL_INTERVAL value: %s", pollStr)
+		}
+		c.PollInterval = time.Duration(pollSec) * time.Second
+	}
+
+	if reportStr := os.Getenv("REPORT_INTERVAL"); reportStr != "" {
+		reportSec, err := strconv.Atoi(reportStr)
+		if err != nil {
+			return fmt.Errorf("invalid REPORT_INTERVAL value: %s", reportStr)
+		}
+		c.ReportInterval = time.Duration(reportSec) * time.Second
 	}
 
 	return nil
