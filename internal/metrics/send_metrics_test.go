@@ -93,6 +93,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 				Counters:  tt.counters,
 				serverURL: server.URL,
 				logger:    mockLogger,
+				client:    &http.Client{},
 			}
 
 			metrics.SendMetrics()
@@ -132,7 +133,15 @@ func TestSendMetric(t *testing.T) {
 			defer server.Close()
 
 			mockLogger := logger.NewMockLogger()
-			sendMetric(server.URL+"/update/gauge/testMetric/1.1", mockLogger)
+			metrics := &Metrics{
+				Gauges:    make(map[GaugeMetric]float64),
+				Counters:  make(map[CounterMetric]int64),
+				serverURL: server.URL,
+				logger:    mockLogger,
+				client:    &http.Client{},
+			}
+
+			metrics.sendMetric(server.URL + "/update/gauge/testMetric/1.1")
 		})
 	}
 }

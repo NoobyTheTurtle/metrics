@@ -3,6 +3,7 @@ package metrics
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -51,6 +52,7 @@ type Metrics struct {
 	serverURL string
 	logger    Logger
 	random    *rand.Rand
+	client    *http.Client
 }
 
 func NewMetrics(serverAddress string, log Logger, useTLS bool) *Metrics {
@@ -71,5 +73,6 @@ func NewMetrics(serverAddress string, log Logger, useTLS bool) *Metrics {
 		serverURL: serverURL,
 		logger:    log,
 		random:    random,
+		client:    &http.Client{},
 	}
 }
