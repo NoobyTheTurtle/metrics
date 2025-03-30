@@ -8,8 +8,12 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/metrics"
 )
 
-func StartAgent() {
-	config := configs.NewAgentConfig()
+func StartAgent() error {
+	config, err := configs.NewAgentConfig()
+	if err != nil {
+		return err
+	}
+
 	log := logger.NewStdLogger(logger.DebugLevel)
 	metric := metrics.NewMetrics(config.ServerAddress, log)
 

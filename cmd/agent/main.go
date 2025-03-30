@@ -1,7 +1,13 @@
 package main
 
-import "github.com/NoobyTheTurtle/metrics/internal/apps"
+import (
+	"log"
+
+	"github.com/NoobyTheTurtle/metrics/internal/apps"
+)
 
 func main() {
-	apps.StartAgent()
+	if err := apps.StartAgent(); err != nil {
+		log.Fatal(err)
+	}
 }

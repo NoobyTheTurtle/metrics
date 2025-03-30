@@ -8,7 +8,11 @@ import (
 )
 
 func StartServer() error {
-	config := configs.NewServerConfig()
+	config, err := configs.NewServerConfig()
+	if err != nil {
+		return err
+	}
+
 	store := storage.NewMemStorage()
 	log := logger.NewStdLogger(logger.DebugLevel)
 
