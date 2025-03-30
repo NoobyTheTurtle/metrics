@@ -16,7 +16,7 @@ func NewAgentConfig() (*AgentConfig, error) {
 	config := &AgentConfig{
 		PollInterval:   2 * time.Second,
 		ReportInterval: 10 * time.Second,
-		ServerAddress:  "http://localhost:8080",
+		ServerAddress:  "localhost:8080",
 	}
 
 	if err := config.parseFlags(); err != nil {

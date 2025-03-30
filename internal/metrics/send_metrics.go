@@ -12,12 +12,12 @@ const (
 
 func (m *Metrics) SendMetrics() {
 	for name, value := range m.Gauges {
-		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverAddress, Gauge, name, value)
+		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverUrl, Gauge, name, value)
 		sendMetric(url, m.logger)
 	}
 
 	for name, value := range m.Counters {
-		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverAddress, Counter, name, value)
+		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverUrl, Counter, name, value)
 		sendMetric(url, m.logger)
 	}
 }
