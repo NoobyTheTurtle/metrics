@@ -1,11 +1,11 @@
 package apps
 
 import (
-	"time"
-
+	"github.com/NoobyTheTurtle/metrics/internal/collector"
 	"github.com/NoobyTheTurtle/metrics/internal/configs"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/NoobyTheTurtle/metrics/internal/metrics"
+	"github.com/NoobyTheTurtle/metrics/internal/reporter"
 )
 
 func StartAgent() error {
@@ -17,23 +17,12 @@ func StartAgent() error {
 	log := logger.NewStdLogger(logger.DebugLevel)
 	metric := metrics.NewMetrics(config.ServerAddress, log, false)
 
-	go func() {
-		for {
-			time.Sleep(config.PollInterval)
+	metricCollector := collector.NewCollector(metric, log, config.PollInterval)
+	metricReporter := reporter.NewReporter(metric, log, config.ReportInterval)
 
-			metric.UpdateMetrics()
-			log.Info("Metrics updated")
-		}
-	}()
+	go metricCollector.Run()
 
-	go func() {
-		for {
-			time.Sleep(config.ReportInterval)
-
-			metric.SendMetrics()
-			log.Info("Metrics sent to server")
-		}
-	}()
+	go metricReporter.Run()
 
 	log.Info("Starting agent...")
 	select {}
