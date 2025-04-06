@@ -1,5 +1,6 @@
 package storage
 
+// TODO: fix race condition
 type MemStorage struct {
 	gauges   map[string]float64
 	counters map[string]int64
