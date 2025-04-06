@@ -1,48 +1,14 @@
 package handlers
 
 import (
+	_ "embed"
 	"html/template"
 	"net/http"
 	"sort"
 )
 
-const indexTemplate = `
-<!DOCTYPE html>
-<html>
-<head></head>
-<body>
-    <h1>Metrics</h1>
-    
-    <h2>Gauge</h2>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Value</th>
-        </tr>
-        {{range .Gauges}}
-        <tr>
-            <td>{{.Name}}</td>
-            <td>{{.Value}}</td>
-        </tr>
-        {{end}}
-    </table>
-    
-    <h2>Counter</h2>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Value</th>
-        </tr>
-        {{range .Counters}}
-        <tr>
-            <td>{{.Name}}</td>
-            <td>{{.Value}}</td>
-        </tr>
-        {{end}}
-    </table>
-</body>
-</html>
-`
+//go:embed templates/index.html
+var indexHTML string
 
 type metricData struct {
 	Name  string
@@ -84,7 +50,7 @@ func mapCounters(counters map[string]int64) []metricData {
 
 func (h *handler) indexHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.New("index").Parse(indexTemplate)
+		tmpl, err := template.New("index").Parse(indexHTML)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+    <h1>Metrics</h1>
+
+    <h2>Gauge</h2>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        {{range .Gauges}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.Value}}</td>
+        </tr>
+        {{end}}
+    </table>
+
+    <h2>Counter</h2>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        {{range .Counters}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.Value}}</td>
+        </tr>
+        {{end}}
+    </table>
+</body>
+</html>
