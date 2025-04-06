@@ -1,13 +1,15 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/storage"
+	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_handler_updateHandler(t *testing.T) {
@@ -15,82 +17,118 @@ func Test_handler_updateHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		shouldFailGauge    bool
-		shouldFailCounter  bool
+		setupStorage       func(*gomock.Controller) *mocks.MockServerStorage
 		expectedStatusCode int
 	}{
 		{
-			name:               "successful gauge update",
-			method:             http.MethodPost,
-			url:                "/update/gauge/HeapObjects/7770",
+			name:   "successful gauge update",
+			method: http.MethodPost,
+			url:    "/update/gauge/HeapObjects/7770",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				mockStorage := mocks.NewMockServerStorage(ctrl)
+				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(nil)
+				return mockStorage
+			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name:               "successful counter update",
-			method:             http.MethodPost,
-			url:                "/update/counter/PollCount/30",
+			name:   "successful counter update",
+			method: http.MethodPost,
+			url:    "/update/counter/PollCount/30",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				mockStorage := mocks.NewMockServerStorage(ctrl)
+				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(nil)
+				return mockStorage
+			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name:               "wrong method",
-			method:             http.MethodGet,
-			url:                "/update/counter/PollCount/30",
+			name:   "wrong method",
+			method: http.MethodGet,
+			url:    "/update/counter/PollCount/30",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 		},
 		{
-			name:               "invalid url format",
-			method:             http.MethodPost,
-			url:                "/update/gauge/wrong-format",
+			name:   "invalid url format",
+			method: http.MethodPost,
+			url:    "/update/gauge/wrong-format",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusNotFound,
 		},
 		{
-			name:               "empty metric name",
-			method:             http.MethodPost,
-			url:                "/update/gauge//30",
+			name:   "empty metric name",
+			method: http.MethodPost,
+			url:    "/update/gauge//30",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusNotFound,
 		},
 		{
-			name:               "invalid gauge value",
-			method:             http.MethodPost,
-			url:                "/update/gauge/HeapObjects/not-a-number",
+			name:   "invalid gauge value",
+			method: http.MethodPost,
+			url:    "/update/gauge/HeapObjects/not-a-number",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name:               "invalid counter value",
-			method:             http.MethodPost,
-			url:                "/update/counter/PollCount/not-a-number",
+			name:   "invalid counter value",
+			method: http.MethodPost,
+			url:    "/update/counter/PollCount/not-a-number",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name:               "unknown metric type",
-			method:             http.MethodPost,
-			url:                "/update/unknown/PollCount/30",
+			name:   "unknown metric type",
+			method: http.MethodPost,
+			url:    "/update/unknown/PollCount/30",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name:               "gauge update error",
-			method:             http.MethodPost,
-			url:                "/update/gauge/HeapObjects/7770",
-			shouldFailGauge:    true,
+			name:   "gauge update error",
+			method: http.MethodPost,
+			url:    "/update/gauge/HeapObjects/7770",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				mockStorage := mocks.NewMockServerStorage(ctrl)
+				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(errors.New("gauge update error"))
+				return mockStorage
+			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			name:               "counter update error",
-			method:             http.MethodPost,
-			url:                "/update/counter/PollCount/30",
-			shouldFailCounter:  true,
+			name:   "counter update error",
+			method: http.MethodPost,
+			url:    "/update/counter/PollCount/30",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				mockStorage := mocks.NewMockServerStorage(ctrl)
+				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(errors.New("counter update error"))
+				return mockStorage
+			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockStorage := storage.NewMockStorage()
-			mockStorage.SetShouldFailGauge(tt.shouldFailGauge)
-			mockStorage.SetShouldFailCounter(tt.shouldFailCounter)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			storage := tt.setupStorage(ctrl)
 
 			h := &handler{
-				storage: mockStorage,
+				storage: storage,
 			}
 
 			r := chi.NewRouter()

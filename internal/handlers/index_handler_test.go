@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/storage"
+	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_mapGauges(t *testing.T) {
@@ -84,7 +85,7 @@ func Test_handler_indexHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupStorage       func(*storage.MockStorage)
+		setupStorage       func(*gomock.Controller) *mocks.MockServerStorage
 		expectedStatusCode int
 		expectedContains   []string
 	}{
@@ -92,10 +93,21 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "successful metrics page retrieval",
 			method: http.MethodGet,
 			url:    "/",
-			setupStorage: func(m *storage.MockStorage) {
-				m.UpdateGauge("Alloc", 15.5)
-				m.UpdateGauge("BuckHashSys", 30.25)
-				m.UpdateCounter("PollCount", 30)
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				mockStorage := mocks.NewMockServerStorage(ctrl)
+
+				gauges := map[string]float64{
+					"Alloc":       15.5,
+					"BuckHashSys": 30.25,
+				}
+				counters := map[string]int64{
+					"PollCount": 30,
+				}
+
+				mockStorage.EXPECT().GetAllGauges().Return(gauges)
+				mockStorage.EXPECT().GetAllCounters().Return(counters)
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -114,7 +126,13 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "empty metrics",
 			method: http.MethodGet,
 			url:    "/",
-			setupStorage: func(m *storage.MockStorage) {
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				mockStorage := mocks.NewMockServerStorage(ctrl)
+
+				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
+				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -124,10 +142,12 @@ func Test_handler_indexHandler(t *testing.T) {
 			},
 		},
 		{
-			name:               "wrong method",
-			method:             http.MethodPost,
-			url:                "/",
-			setupStorage:       func(m *storage.MockStorage) {},
+			name:   "wrong method",
+			method: http.MethodPost,
+			url:    "/",
+			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
+				return mocks.NewMockServerStorage(ctrl)
+			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 			expectedContains:   nil,
 		},
@@ -135,8 +155,10 @@ func Test_handler_indexHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storage := storage.NewMockStorage()
-			tt.setupStorage(storage)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			storage := tt.setupStorage(ctrl)
 
 			h := &handler{
 				storage: storage,
