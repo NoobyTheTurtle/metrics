@@ -16,9 +16,9 @@ type AgentConfig struct {
 
 func NewAgentConfig() (*AgentConfig, error) {
 	config := &AgentConfig{
-		PollInterval:   2 * time.Second,
-		ReportInterval: 10 * time.Second,
-		ServerAddress:  "localhost:8080",
+		PollInterval:   DefaultPollInterval,
+		ReportInterval: DefaultReportInterval,
+		ServerAddress:  DefaultServerAddress,
 	}
 
 	if err := config.parseFlags(); err != nil {
@@ -35,9 +35,9 @@ func NewAgentConfig() (*AgentConfig, error) {
 func (c *AgentConfig) parseFlags() error {
 	var pollIntervalSec, reportIntervalSec int
 
-	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address (default: localhost:8080)")
-	flag.IntVar(&pollIntervalSec, "p", int(c.PollInterval.Seconds()), "Poll interval in seconds (default: 2s)")
-	flag.IntVar(&reportIntervalSec, "r", int(c.ReportInterval.Seconds()), "Report interval in seconds (default: 10s)")
+	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
+	flag.IntVar(&pollIntervalSec, "p", int(c.PollInterval.Seconds()), "Poll interval in seconds")
+	flag.IntVar(&reportIntervalSec, "r", int(c.ReportInterval.Seconds()), "Report interval in seconds")
 
 	flag.Parse()
 

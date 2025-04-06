@@ -33,7 +33,7 @@ func TestNewServerConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &ServerConfig{
-				ServerAddress: "localhost:8080",
+				ServerAddress: DefaultServerAddress,
 			},
 		},
 		{

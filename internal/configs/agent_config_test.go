@@ -41,9 +41,9 @@ func TestNewAgentConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &AgentConfig{
-				ServerAddress:  "localhost:8080",
-				PollInterval:   2 * time.Second,
-				ReportInterval: 10 * time.Second,
+				ServerAddress:  DefaultServerAddress,
+				PollInterval:   DefaultPollInterval,
+				ReportInterval: DefaultReportInterval,
 			},
 		},
 		{

@@ -13,7 +13,7 @@ type ServerConfig struct {
 
 func NewServerConfig() (*ServerConfig, error) {
 	config := &ServerConfig{
-		ServerAddress: "localhost:8080",
+		ServerAddress: DefaultServerAddress,
 	}
 
 	if err := config.parseFlags(); err != nil {
@@ -28,7 +28,7 @@ func NewServerConfig() (*ServerConfig, error) {
 }
 
 func (c *ServerConfig) parseFlags() error {
-	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address (default: localhost:8080)")
+	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
 
 	flag.Parse()
 
