@@ -20,6 +20,23 @@ type pageData struct {
 	Counters []metricData
 }
 
+type indexStorage interface {
+	GaugesGetter
+	CountersGetter
+}
+
+type indexHandler struct {
+	storage indexStorage
+	logger  Logger
+}
+
+func newIndexHandler(storage indexStorage, logger Logger) *indexHandler {
+	return &indexHandler{
+		storage: storage,
+		logger:  logger,
+	}
+}
+
 func mapGauges(gauges map[string]float64) []metricData {
 	result := make([]metricData, 0, len(gauges))
 	for name, value := range gauges {
@@ -48,23 +65,26 @@ func mapCounters(counters map[string]int64) []metricData {
 	return result
 }
 
-func (h *handler) indexHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.New("index").Parse(indexHTML)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		data := pageData{
-			Gauges:   mapGauges(h.storage.GetAllGauges()),
-			Counters: mapCounters(h.storage.GetAllCounters()),
-		}
-
-		w.Header().Set("Content-Type", "text/html")
-		if err := tmpl.Execute(w, data); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.New("index").Parse(indexHTML)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	data := pageData{
+		Gauges:   mapGauges(h.storage.GetAllGauges()),
+		Counters: mapCounters(h.storage.GetAllCounters()),
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *handler) indexHandler() http.HandlerFunc {
+	handler := newIndexHandler(h.storage, h.logger)
+	return handler.ServeHTTP
 }
