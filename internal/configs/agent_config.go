@@ -3,15 +3,15 @@ package configs
 import (
 	"flag"
 	"fmt"
-	"os"
-	"strconv"
 	"time"
+
+	"github.com/caarlos0/env/v11"
 )
 
 type AgentConfig struct {
-	PollInterval   time.Duration
-	ReportInterval time.Duration
-	ServerAddress  string
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
+	ServerAddress  string        `env:"ADDRESS"`
 }
 
 func NewAgentConfig() (*AgentConfig, error) {
@@ -25,8 +25,8 @@ func NewAgentConfig() (*AgentConfig, error) {
 		return nil, err
 	}
 
-	if err := config.parseEnv(); err != nil {
-		return nil, err
+	if err := env.Parse(config); err != nil {
+		return nil, fmt.Errorf("parsing environment variables: %w", err)
 	}
 
 	return config, nil
@@ -35,9 +35,9 @@ func NewAgentConfig() (*AgentConfig, error) {
 func (c *AgentConfig) parseFlags() error {
 	var pollIntervalSec, reportIntervalSec int
 
-	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address (default: http://localhost:8080)")
-	flag.IntVar(&pollIntervalSec, "p", int(c.PollInterval.Seconds()), "Poll interval in seconds (default: 2)")
-	flag.IntVar(&reportIntervalSec, "r", int(c.ReportInterval.Seconds()), "Report interval in seconds (default: 10)")
+	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address (default: localhost:8080)")
+	flag.IntVar(&pollIntervalSec, "p", int(c.PollInterval.Seconds()), "Poll interval in seconds (default: 2s)")
+	flag.IntVar(&reportIntervalSec, "r", int(c.ReportInterval.Seconds()), "Report interval in seconds (default: 10s)")
 
 	flag.Parse()
 
@@ -46,30 +46,6 @@ func (c *AgentConfig) parseFlags() error {
 
 	if flag.NArg() > 0 {
 		return fmt.Errorf("unknown command line arguments: %v", flag.Args())
-	}
-
-	return nil
-}
-
-func (c *AgentConfig) parseEnv() error {
-	if addr := os.Getenv("ADDRESS"); addr != "" {
-		c.ServerAddress = addr
-	}
-
-	if pollStr := os.Getenv("POLL_INTERVAL"); pollStr != "" {
-		pollSec, err := strconv.Atoi(pollStr)
-		if err != nil {
-			return fmt.Errorf("invalid POLL_INTERVAL value: %s", pollStr)
-		}
-		c.PollInterval = time.Duration(pollSec) * time.Second
-	}
-
-	if reportStr := os.Getenv("REPORT_INTERVAL"); reportStr != "" {
-		reportSec, err := strconv.Atoi(reportStr)
-		if err != nil {
-			return fmt.Errorf("invalid REPORT_INTERVAL value: %s", reportStr)
-		}
-		c.ReportInterval = time.Duration(reportSec) * time.Second
 	}
 
 	return nil

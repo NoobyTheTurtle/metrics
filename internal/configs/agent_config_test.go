@@ -60,8 +60,8 @@ func TestNewAgentConfig(t *testing.T) {
 			args: []string{"test"},
 			envs: map[string]string{
 				"ADDRESS":         "localhost:7070",
-				"POLL_INTERVAL":   "3",
-				"REPORT_INTERVAL": "15",
+				"POLL_INTERVAL":   "3s",
+				"REPORT_INTERVAL": "15s",
 			},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:7070",
@@ -74,8 +74,8 @@ func TestNewAgentConfig(t *testing.T) {
 			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20"},
 			envs: map[string]string{
 				"ADDRESS":         "localhost:7070",
-				"POLL_INTERVAL":   "3",
-				"REPORT_INTERVAL": "15",
+				"POLL_INTERVAL":   "3s",
+				"REPORT_INTERVAL": "15s",
 			},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:7070",
@@ -89,7 +89,7 @@ func TestNewAgentConfig(t *testing.T) {
 			envs: map[string]string{
 				"POLL_INTERVAL": "invalid",
 			},
-			expectedErrMsg: "invalid POLL_INTERVAL value",
+			expectedErrMsg: "parsing environment variables",
 		},
 		{
 			name: "invalid report interval environment variable",
@@ -97,7 +97,7 @@ func TestNewAgentConfig(t *testing.T) {
 			envs: map[string]string{
 				"REPORT_INTERVAL": "invalid",
 			},
-			expectedErrMsg: "invalid REPORT_INTERVAL value",
+			expectedErrMsg: "parsing environment variables",
 		},
 		{
 			name:           "unknown arguments",

@@ -3,11 +3,12 @@ package configs
 import (
 	"flag"
 	"fmt"
-	"os"
+
+	"github.com/caarlos0/env/v11"
 )
 
 type ServerConfig struct {
-	ServerAddress string
+	ServerAddress string `env:"ADDRESS"`
 }
 
 func NewServerConfig() (*ServerConfig, error) {
@@ -19,8 +20,8 @@ func NewServerConfig() (*ServerConfig, error) {
 		return nil, err
 	}
 
-	if err := config.parseEnv(); err != nil {
-		return nil, err
+	if err := env.Parse(config); err != nil {
+		return nil, fmt.Errorf("parsing environment variables: %w", err)
 	}
 
 	return config, nil
@@ -33,14 +34,6 @@ func (c *ServerConfig) parseFlags() error {
 
 	if flag.NArg() > 0 {
 		return fmt.Errorf("unknown command line arguments: %v", flag.Args())
-	}
-
-	return nil
-}
-
-func (c *ServerConfig) parseEnv() error {
-	if addr := os.Getenv("ADDRESS"); addr != "" {
-		c.ServerAddress = addr
 	}
 
 	return nil

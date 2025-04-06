@@ -46,7 +46,9 @@ func TestNewServerConfig(t *testing.T) {
 		{
 			name: "environment variables",
 			args: []string{"test"},
-			envs: map[string]string{"ADDRESS": "localhost:7070"},
+			envs: map[string]string{
+				"ADDRESS": "localhost:7070",
+			},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:7070",
 			},
@@ -54,7 +56,9 @@ func TestNewServerConfig(t *testing.T) {
 		{
 			name: "environment variables override flags",
 			args: []string{"test", "-a", "localhost:9090"},
-			envs: map[string]string{"ADDRESS": "localhost:7070"},
+			envs: map[string]string{
+				"ADDRESS": "localhost:7070",
+			},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:7070",
 			},
@@ -74,7 +78,6 @@ func TestNewServerConfig(t *testing.T) {
 			for k, v := range tt.envs {
 				os.Setenv(k, v)
 			}
-
 			defer func() {
 				for k := range tt.envs {
 					os.Unsetenv(k)
