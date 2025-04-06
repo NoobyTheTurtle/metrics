@@ -18,7 +18,6 @@ jobs:
 
   metricstest:
     runs-on: ubuntu-latest
-    container: golang:1.22
     needs: branchtest
 
     services:
@@ -36,6 +35,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
 
       - name: Download autotests binaries
         uses: robinraju/release-downloader@v1.8
