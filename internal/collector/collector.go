@@ -12,11 +12,11 @@ type Collector struct {
 	pollInterval time.Duration
 }
 
-func NewCollector(metrics *metrics.Metrics, logger metrics.Logger, pollInterval time.Duration) *Collector {
+func NewCollector(metrics *metrics.Metrics, logger metrics.Logger, pollInterval uint) *Collector {
 	return &Collector{
 		metrics:      metrics,
 		logger:       logger,
-		pollInterval: pollInterval,
+		pollInterval: time.Duration(pollInterval) * time.Second,
 	}
 }
 

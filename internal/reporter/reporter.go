@@ -12,11 +12,11 @@ type Reporter struct {
 	reportInterval time.Duration
 }
 
-func NewReporter(metrics *metrics.Metrics, logger metrics.Logger, reportInterval time.Duration) *Reporter {
+func NewReporter(metrics *metrics.Metrics, logger metrics.Logger, reportInterval uint) *Reporter {
 	return &Reporter{
 		metrics:        metrics,
 		logger:         logger,
-		reportInterval: reportInterval,
+		reportInterval: time.Duration(reportInterval) * time.Second,
 	}
 }
 

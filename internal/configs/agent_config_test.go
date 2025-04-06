@@ -3,7 +3,6 @@ package configs
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -51,8 +50,8 @@ func TestNewAgentConfig(t *testing.T) {
 			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20"},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:9090",
-				PollInterval:   5 * time.Second,
-				ReportInterval: 20 * time.Second,
+				PollInterval:   5,
+				ReportInterval: 20,
 			},
 		},
 		{
@@ -60,13 +59,13 @@ func TestNewAgentConfig(t *testing.T) {
 			args: []string{"test"},
 			envs: map[string]string{
 				"ADDRESS":         "localhost:7070",
-				"POLL_INTERVAL":   "3s",
-				"REPORT_INTERVAL": "15s",
+				"POLL_INTERVAL":   "3",
+				"REPORT_INTERVAL": "15",
 			},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:7070",
-				PollInterval:   3 * time.Second,
-				ReportInterval: 15 * time.Second,
+				PollInterval:   3,
+				ReportInterval: 15,
 			},
 		},
 		{
@@ -74,13 +73,13 @@ func TestNewAgentConfig(t *testing.T) {
 			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20"},
 			envs: map[string]string{
 				"ADDRESS":         "localhost:7070",
-				"POLL_INTERVAL":   "3s",
-				"REPORT_INTERVAL": "15s",
+				"POLL_INTERVAL":   "3",
+				"REPORT_INTERVAL": "15",
 			},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:7070",
-				PollInterval:   3 * time.Second,
-				ReportInterval: 15 * time.Second,
+				PollInterval:   3,
+				ReportInterval: 15,
 			},
 		},
 		{
