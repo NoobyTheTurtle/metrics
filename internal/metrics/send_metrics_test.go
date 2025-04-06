@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -94,7 +93,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			mockLogger := mocks.NewMockMetricsLogger(ctrl)
+			mockLogger := NewMockmetricsLogger(ctrl)
 
 			if tt.statusCode != http.StatusOK {
 				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(len(tt.gauges) + len(tt.counters))
@@ -149,7 +148,7 @@ func TestSendMetric(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			mockLogger := mocks.NewMockMetricsLogger(ctrl)
+			mockLogger := NewMockmetricsLogger(ctrl)
 
 			if tt.statusCode != http.StatusOK {
 				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(1)

@@ -27,10 +27,10 @@ type indexStorage interface {
 
 type indexHandler struct {
 	storage indexStorage
-	logger  Logger
+	logger  handlersLogger
 }
 
-func newIndexHandler(storage indexStorage, logger Logger) *indexHandler {
+func newIndexHandler(storage indexStorage, logger handlersLogger) *indexHandler {
 	return &indexHandler{
 		storage: storage,
 		logger:  logger,

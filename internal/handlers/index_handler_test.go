@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -85,7 +84,7 @@ func Test_handler_indexHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupStorage       func(*gomock.Controller) *mocks.MockServerStorage
+		setupMocks         func(*gomock.Controller) (*MockserverStorage, *MockhandlersLogger)
 		expectedStatusCode int
 		expectedContains   []string
 	}{
@@ -93,8 +92,8 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "successful metrics page retrieval",
 			method: http.MethodGet,
 			url:    "/",
-			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
-				mockStorage := mocks.NewMockServerStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockserverStorage, *MockhandlersLogger) {
+				mockStorage := NewMockserverStorage(ctrl)
 
 				gauges := map[string]float64{
 					"Alloc":       15.5,
@@ -107,7 +106,8 @@ func Test_handler_indexHandler(t *testing.T) {
 				mockStorage.EXPECT().GetAllGauges().Return(gauges)
 				mockStorage.EXPECT().GetAllCounters().Return(counters)
 
-				return mockStorage
+				mockLogger := NewMockhandlersLogger(ctrl)
+				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -126,13 +126,14 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "empty metrics",
 			method: http.MethodGet,
 			url:    "/",
-			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
-				mockStorage := mocks.NewMockServerStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockserverStorage, *MockhandlersLogger) {
+				mockStorage := NewMockserverStorage(ctrl)
 
 				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
 				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
 
-				return mockStorage
+				mockLogger := NewMockhandlersLogger(ctrl)
+				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -145,8 +146,10 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "wrong method",
 			method: http.MethodPost,
 			url:    "/",
-			setupStorage: func(ctrl *gomock.Controller) *mocks.MockServerStorage {
-				return mocks.NewMockServerStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockserverStorage, *MockhandlersLogger) {
+				mockStorage := NewMockserverStorage(ctrl)
+				mockLogger := NewMockhandlersLogger(ctrl)
+				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 			expectedContains:   nil,
@@ -158,10 +161,11 @@ func Test_handler_indexHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			storage := tt.setupStorage(ctrl)
+			storage, logger := tt.setupMocks(ctrl)
 
 			h := &handler{
 				storage: storage,
+				logger:  logger,
 			}
 
 			r := chi.NewRouter()

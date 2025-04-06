@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
-	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 )
 
 type metricsLogger interface {
@@ -11,4 +10,4 @@ type metricsLogger interface {
 }
 
 var _ metricsLogger = (*logger.StdLogger)(nil)
-var _ metricsLogger = (*mocks.MockMetricsLogger)(nil)
+var _ metricsLogger = (*MockmetricsLogger)(nil)

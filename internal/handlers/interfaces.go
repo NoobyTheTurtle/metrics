@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
-	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 	"github.com/NoobyTheTurtle/metrics/internal/storage"
 )
 
@@ -48,12 +47,12 @@ type serverStorage interface {
 }
 
 var _ serverStorage = (*storage.MemStorage)(nil)
-var _ serverStorage = (*mocks.MockServerStorage)(nil)
+var _ serverStorage = (*MockserverStorage)(nil)
 
-type Logger interface {
+type handlersLogger interface {
 	Info(format string, args ...any)
 	Error(format string, args ...any)
 }
 
-var _ Logger = (*logger.StdLogger)(nil)
-var _ Logger = (*logger.MockLogger)(nil)
+var _ handlersLogger = (*logger.StdLogger)(nil)
+var _ handlersLogger = (*MockhandlersLogger)(nil)

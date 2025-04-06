@@ -3,12 +3,11 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestLoggingMiddleware(t *testing.T) {
@@ -18,7 +17,7 @@ func TestLoggingMiddleware(t *testing.T) {
 		path           string
 		expectedStatus int
 		expectedBody   string
-		expectedLog    string
+		expectedFormat string
 	}{
 		{
 			name:           "GET request",
@@ -26,7 +25,7 @@ func TestLoggingMiddleware(t *testing.T) {
 			path:           "/test/path",
 			expectedStatus: http.StatusOK,
 			expectedBody:   "base handler called",
-			expectedLog:    "[INFO] Incoming request: GET /test/path",
+			expectedFormat: "Incoming request: %s %s",
 		},
 		{
 			name:           "POST request",
@@ -34,7 +33,7 @@ func TestLoggingMiddleware(t *testing.T) {
 			path:           "/update/counter/metric/1",
 			expectedStatus: http.StatusOK,
 			expectedBody:   "base handler called",
-			expectedLog:    "[INFO] Incoming request: POST /update/counter/metric/1",
+			expectedFormat: "Incoming request: %s %s",
 		},
 		{
 			name:           "PUT request",
@@ -42,13 +41,18 @@ func TestLoggingMiddleware(t *testing.T) {
 			path:           "/api/v1/metrics",
 			expectedStatus: http.StatusOK,
 			expectedBody:   "base handler called",
-			expectedLog:    "[INFO] Incoming request: PUT /api/v1/metrics",
+			expectedFormat: "Incoming request: %s %s",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockLog := logger.NewMockLogger()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockLog := NewMockhandlersLogger(ctrl)
+
+			mockLog.EXPECT().Info(tc.expectedFormat, tc.method, tc.path).Times(1)
 
 			baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("base handler called"))
@@ -64,10 +68,6 @@ func TestLoggingMiddleware(t *testing.T) {
 
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
 			assert.Equal(t, tc.expectedBody, recorder.Body.String())
-
-			logOutput := mockLog.GetOutput()
-			assert.True(t, strings.Contains(logOutput, tc.expectedLog),
-				"Log output should contain \"%s\", got: %s", tc.expectedLog, logOutput)
 		})
 	}
 }
