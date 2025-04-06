@@ -2,17 +2,15 @@ package reporter
 
 import (
 	"time"
-
-	"github.com/NoobyTheTurtle/metrics/internal/metrics"
 )
 
 type Reporter struct {
-	metrics        *metrics.Metrics
-	logger         metrics.Logger
+	metrics        metricsReporter
+	logger         reporterLogger
 	reportInterval time.Duration
 }
 
-func NewReporter(metrics *metrics.Metrics, logger metrics.Logger, reportInterval uint) *Reporter {
+func NewReporter(metrics metricsReporter, logger reporterLogger, reportInterval uint) *Reporter {
 	return &Reporter{
 		metrics:        metrics,
 		logger:         logger,

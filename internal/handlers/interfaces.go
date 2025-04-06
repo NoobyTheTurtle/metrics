@@ -6,49 +6,49 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage"
 )
 
-type GaugeGetter interface {
+type gaugeGetter interface {
 	GetGauge(name string) (float64, bool)
 }
 
-type GaugeSetter interface {
+type gaugeSetter interface {
 	UpdateGauge(name string, value float64) error
 }
 
-type GaugesGetter interface {
+type gaugesGetter interface {
 	GetAllGauges() map[string]float64
 }
 
-type CounterGetter interface {
+type counterGetter interface {
 	GetCounter(name string) (int64, bool)
 }
 
-type CounterSetter interface {
+type counterSetter interface {
 	UpdateCounter(name string, value int64) error
 }
 
-type CountersGetter interface {
+type countersGetter interface {
 	GetAllCounters() map[string]int64
 }
 
-type GaugeStorage interface {
-	GaugeGetter
-	GaugeSetter
-	GaugesGetter
+type gaugeStorage interface {
+	gaugeGetter
+	gaugeSetter
+	gaugesGetter
 }
 
-type CounterStorage interface {
-	CounterGetter
-	CounterSetter
-	CountersGetter
+type counterStorage interface {
+	counterGetter
+	counterSetter
+	countersGetter
 }
 
-type ServerStorage interface {
-	GaugeStorage
-	CounterStorage
+type serverStorage interface {
+	gaugeStorage
+	counterStorage
 }
 
-var _ ServerStorage = (*storage.MemStorage)(nil)
-var _ ServerStorage = (*mocks.MockServerStorage)(nil)
+var _ serverStorage = (*storage.MemStorage)(nil)
+var _ serverStorage = (*mocks.MockServerStorage)(nil)
 
 type Logger interface {
 	Info(format string, args ...any)

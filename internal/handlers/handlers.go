@@ -7,11 +7,11 @@ import (
 )
 
 type handler struct {
-	storage ServerStorage
+	storage serverStorage
 	logger  Logger
 }
 
-func InitHandlers(serverAddress string, storage ServerStorage, log Logger) error {
+func InitHandlers(serverAddress string, storage serverStorage, log Logger) error {
 	h := &handler{
 		storage: storage,
 		logger:  log,

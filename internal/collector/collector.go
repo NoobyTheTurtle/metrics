@@ -2,17 +2,15 @@ package collector
 
 import (
 	"time"
-
-	"github.com/NoobyTheTurtle/metrics/internal/metrics"
 )
 
 type Collector struct {
-	metrics      *metrics.Metrics
-	logger       metrics.Logger
+	metrics      metricsCollector
+	logger       collectorLogger
 	pollInterval time.Duration
 }
 
-func NewCollector(metrics *metrics.Metrics, logger metrics.Logger, pollInterval uint) *Collector {
+func NewCollector(metrics metricsCollector, logger collectorLogger, pollInterval uint) *Collector {
 	return &Collector{
 		metrics:      metrics,
 		logger:       logger,

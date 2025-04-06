@@ -1,12 +1,14 @@
 package metrics
 
-import "github.com/NoobyTheTurtle/metrics/internal/logger"
+import (
+	"github.com/NoobyTheTurtle/metrics/internal/logger"
+	"github.com/NoobyTheTurtle/metrics/internal/mocks"
+)
 
-type Logger interface {
-	Info(format string, args ...any)
+type metricsLogger interface {
 	Warn(format string, args ...any)
 	Error(format string, args ...any)
 }
 
-var _ Logger = (*logger.StdLogger)(nil)
-var _ Logger = (*logger.MockLogger)(nil)
+var _ metricsLogger = (*logger.StdLogger)(nil)
+var _ metricsLogger = (*mocks.MockMetricsLogger)(nil)

@@ -14,12 +14,12 @@ type Metrics struct {
 	Gauges    map[GaugeMetric]float64
 	Counters  map[CounterMetric]int64
 	serverURL string
-	logger    Logger
+	logger    metricsLogger
 	random    *rand.Rand
 	client    *http.Client
 }
 
-func NewMetrics(serverAddress string, log Logger, useTLS bool) *Metrics {
+func NewMetrics(serverAddress string, log metricsLogger, useTLS bool) *Metrics {
 	protocol := "http"
 
 	if useTLS {

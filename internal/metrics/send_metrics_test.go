@@ -5,8 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/logger"
+	"github.com/NoobyTheTurtle/metrics/internal/mocks"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestMetrics_SendMetrics(t *testing.T) {
@@ -17,6 +18,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 		serverHandler       http.HandlerFunc
 		expectedGaugeURLs   map[string]bool
 		expectedCounterURLs map[string]bool
+		statusCode          int
 	}{
 		{
 			name: "success send metrics",
@@ -37,6 +39,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			expectedCounterURLs: map[string]bool{
 				"/update/counter/PollCount/5": true,
 			},
+			statusCode: http.StatusOK,
 		},
 		{
 			name: "server error",
@@ -55,6 +58,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			expectedCounterURLs: map[string]bool{
 				"/update/counter/PollCount/5": true,
 			},
+			statusCode: http.StatusInternalServerError,
 		},
 		{
 			name:     "empty metrics",
@@ -65,6 +69,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			},
 			expectedGaugeURLs:   map[string]bool{},
 			expectedCounterURLs: map[string]bool{},
+			statusCode:          http.StatusOK,
 		},
 	}
 
@@ -87,7 +92,14 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			}))
 			defer server.Close()
 
-			mockLogger := logger.NewMockLogger()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			mockLogger := mocks.NewMockMetricsLogger(ctrl)
+
+			if tt.statusCode != http.StatusOK {
+				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(len(tt.gauges) + len(tt.counters))
+			}
+
 			metrics := &Metrics{
 				Gauges:    tt.gauges,
 				Counters:  tt.counters,
@@ -108,18 +120,21 @@ func TestSendMetric(t *testing.T) {
 	tests := []struct {
 		name          string
 		serverHandler http.HandlerFunc
+		statusCode    int
 	}{
 		{
 			name: "success send metric",
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			},
+			statusCode: http.StatusOK,
 		},
 		{
 			name: "server error",
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 			},
+			statusCode: http.StatusInternalServerError,
 		},
 	}
 
@@ -132,7 +147,14 @@ func TestSendMetric(t *testing.T) {
 			}))
 			defer server.Close()
 
-			mockLogger := logger.NewMockLogger()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			mockLogger := mocks.NewMockMetricsLogger(ctrl)
+
+			if tt.statusCode != http.StatusOK {
+				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(1)
+			}
+
 			metrics := &Metrics{
 				Gauges:    make(map[GaugeMetric]float64),
 				Counters:  make(map[CounterMetric]int64),

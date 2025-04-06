@@ -21,8 +21,8 @@ type pageData struct {
 }
 
 type indexStorage interface {
-	GaugesGetter
-	CountersGetter
+	gaugesGetter
+	countersGetter
 }
 
 type indexHandler struct {
