@@ -1,4 +1,4 @@
-package handlers
+package plain
 
 import (
 	"io"
@@ -10,22 +10,22 @@ import (
 
 type valueGaugeHandler struct {
 	storage GaugeGetter
-	logger  HandlersLogger
+	logger  HandlerLogger
 }
 
 type valueCounterHandler struct {
 	storage CounterGetter
-	logger  HandlersLogger
+	logger  HandlerLogger
 }
 
-func newValueGaugeHandler(storage GaugeGetter, logger HandlersLogger) *valueGaugeHandler {
+func newValueGaugeHandler(storage GaugeGetter, logger HandlerLogger) *valueGaugeHandler {
 	return &valueGaugeHandler{
 		storage: storage,
 		logger:  logger,
 	}
 }
 
-func newValueCounterHandler(storage CounterGetter, logger HandlersLogger) *valueCounterHandler {
+func newValueCounterHandler(storage CounterGetter, logger HandlerLogger) *valueCounterHandler {
 	return &valueCounterHandler{
 		storage: storage,
 		logger:  logger,
@@ -58,21 +58,4 @@ func (h *valueCounterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	io.WriteString(w, strconv.FormatInt(value, 10))
-}
-
-func (h *handler) valueHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		metricType := MetricType(chi.URLParam(r, "metricType"))
-
-		switch metricType {
-		case Gauge:
-			handler := newValueGaugeHandler(h.storage, h.logger)
-			handler.ServeHTTP(w, r)
-		case Counter:
-			handler := newValueCounterHandler(h.storage, h.logger)
-			handler.ServeHTTP(w, r)
-		default:
-			http.Error(w, "Unknown metric type", http.StatusNotFound)
-		}
-	}
 }

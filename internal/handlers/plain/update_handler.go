@@ -1,4 +1,4 @@
-package handlers
+package plain
 
 import (
 	"net/http"
@@ -9,22 +9,22 @@ import (
 
 type updateGaugeHandler struct {
 	storage GaugeSetter
-	logger  HandlersLogger
+	logger  HandlerLogger
 }
 
 type updateCounterHandler struct {
 	storage CounterSetter
-	logger  HandlersLogger
+	logger  HandlerLogger
 }
 
-func newUpdateGaugeHandler(storage GaugeSetter, logger HandlersLogger) *updateGaugeHandler {
+func newUpdateGaugeHandler(storage GaugeSetter, logger HandlerLogger) *updateGaugeHandler {
 	return &updateGaugeHandler{
 		storage: storage,
 		logger:  logger,
 	}
 }
 
-func newUpdateCounterHandler(storage CounterSetter, logger HandlersLogger) *updateCounterHandler {
+func newUpdateCounterHandler(storage CounterSetter, logger HandlerLogger) *updateCounterHandler {
 	return &updateCounterHandler{
 		storage: storage,
 		logger:  logger,
@@ -81,21 +81,4 @@ func (h *updateCounterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func (h *handler) updateHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		metricType := MetricType(chi.URLParam(r, "metricType"))
-
-		switch metricType {
-		case Gauge:
-			handler := newUpdateGaugeHandler(h.storage, h.logger)
-			handler.ServeHTTP(w, r)
-		case Counter:
-			handler := newUpdateCounterHandler(h.storage, h.logger)
-			handler.ServeHTTP(w, r)
-		default:
-			http.Error(w, "Unknown metric type", http.StatusBadRequest)
-		}
-	}
 }

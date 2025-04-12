@@ -1,4 +1,4 @@
-package handlers
+package plain
 
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
@@ -41,18 +41,18 @@ type CounterStorage interface {
 	CountersGetter
 }
 
-type ServerStorage interface {
+type HandlerStorage interface {
 	GaugeStorage
 	CounterStorage
 }
 
-var _ ServerStorage = (*storage.MemStorage)(nil)
-var _ ServerStorage = (*MockServerStorage)(nil)
+var _ HandlerStorage = (*storage.MemStorage)(nil)
+var _ HandlerStorage = (*MockHandlerStorage)(nil)
 
-type HandlersLogger interface {
+type HandlerLogger interface {
 	Info(format string, args ...any)
 	Error(format string, args ...any)
 }
 
-var _ HandlersLogger = (*logger.ZapLogger)(nil)
-var _ HandlersLogger = (*MockHandlersLogger)(nil)
+var _ HandlerLogger = (*logger.ZapLogger)(nil)
+var _ HandlerLogger = (*MockHandlerLogger)(nil)

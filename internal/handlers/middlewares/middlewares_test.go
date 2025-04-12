@@ -1,4 +1,4 @@
-package handlers
+package middlewares
 
 import (
 	"bytes"
@@ -62,7 +62,7 @@ func TestLoggingMiddleware(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockLog := NewMockHandlersLogger(ctrl)
+			mockLog := NewMockMiddlewareLogger(ctrl)
 
 			mockLog.EXPECT().Info(
 				"uri=%s method=%s status=%d duration=%s size=%d",
@@ -74,7 +74,7 @@ func TestLoggingMiddleware(t *testing.T) {
 			).Times(1)
 
 			baseHandler := http.HandlerFunc(tc.handlerFunc)
-			handler := loggingMiddleware(mockLog)(baseHandler)
+			handler := LoggingMiddleware(mockLog)(baseHandler)
 
 			req, err := http.NewRequest(tc.method, tc.path, bytes.NewBuffer(tc.requestBody))
 			require.NoError(t, err)

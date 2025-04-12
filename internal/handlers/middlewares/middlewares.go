@@ -1,4 +1,4 @@
-package handlers
+package middlewares
 
 import (
 	"net/http"
@@ -28,7 +28,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode
 }
 
-func loggingMiddleware(log HandlersLogger) func(http.Handler) http.Handler {
+func LoggingMiddleware(log MiddlewareLogger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		logFn := func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()

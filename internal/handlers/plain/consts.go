@@ -1,4 +1,4 @@
-package handlers
+package plain
 
 type MetricType string
 

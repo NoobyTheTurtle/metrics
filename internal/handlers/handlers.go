@@ -3,25 +3,23 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/NoobyTheTurtle/metrics/internal/handlers/middlewares"
+	"github.com/NoobyTheTurtle/metrics/internal/handlers/plain"
+	"github.com/NoobyTheTurtle/metrics/internal/logger"
+	"github.com/NoobyTheTurtle/metrics/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
-type handler struct {
-	storage ServerStorage
-	logger  HandlersLogger
-}
-
-func InitHandlers(serverAddress string, storage ServerStorage, log HandlersLogger) error {
-	h := &handler{
-		storage: storage,
-		logger:  log,
-	}
+func InitHandlers(serverAddress string, store *storage.MemStorage, log *logger.ZapLogger) error {
+	plainHandler := plain.NewHandler(store, log)
 
 	r := chi.NewRouter()
-	r.Use(loggingMiddleware(log))
-	r.Get("/", h.indexHandler())
-	r.Get("/value/{metricType}/{metricName}", h.valueHandler())
-	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.updateHandler())
+	r.Use(middlewares.LoggingMiddleware(log))
+
+	// Plain handlers
+	r.Get("/", plainHandler.IndexHandler())
+	r.Get("/value/{metricType}/{metricName}", plainHandler.ValueHandler())
+	r.Post("/update/{metricType}/{metricName}/{metricValue}", plainHandler.UpdateHandler())
 
 	log.Info("Starting server on %s", serverAddress)
 	return http.ListenAndServe(serverAddress, r)

@@ -1,4 +1,4 @@
-package handlers
+package plain
 
 import (
 	"net/http"
@@ -9,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"github.com/NoobyTheTurtle/metrics/internal/test_utils"
 )
 
 func Test_mapGauges(t *testing.T) {
@@ -84,7 +86,7 @@ func Test_handler_indexHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupMocks         func(*gomock.Controller) (*MockServerStorage, *MockHandlersLogger)
+		setupMocks         func(*gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger)
 		expectedStatusCode int
 		expectedContains   []string
 	}{
@@ -92,8 +94,8 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "successful metrics page retrieval",
 			method: http.MethodGet,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockServerStorage, *MockHandlersLogger) {
-				mockStorage := NewMockServerStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+				mockStorage := NewMockHandlerStorage(ctrl)
 
 				gauges := map[string]float64{
 					"Alloc":       15.5,
@@ -106,7 +108,7 @@ func Test_handler_indexHandler(t *testing.T) {
 				mockStorage.EXPECT().GetAllGauges().Return(gauges)
 				mockStorage.EXPECT().GetAllCounters().Return(counters)
 
-				mockLogger := NewMockHandlersLogger(ctrl)
+				mockLogger := NewMockHandlerLogger(ctrl)
 				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusOK,
@@ -126,13 +128,13 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "empty metrics",
 			method: http.MethodGet,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockServerStorage, *MockHandlersLogger) {
-				mockStorage := NewMockServerStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+				mockStorage := NewMockHandlerStorage(ctrl)
 
 				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
 				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
 
-				mockLogger := NewMockHandlersLogger(ctrl)
+				mockLogger := NewMockHandlerLogger(ctrl)
 				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusOK,
@@ -146,9 +148,9 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "wrong method",
 			method: http.MethodPost,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockServerStorage, *MockHandlersLogger) {
-				mockStorage := NewMockServerStorage(ctrl)
-				mockLogger := NewMockHandlersLogger(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+				mockStorage := NewMockHandlerStorage(ctrl)
+				mockLogger := NewMockHandlerLogger(ctrl)
 				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
@@ -163,18 +165,18 @@ func Test_handler_indexHandler(t *testing.T) {
 
 			storage, logger := tt.setupMocks(ctrl)
 
-			h := &handler{
+			h := &Handler{
 				storage: storage,
 				logger:  logger,
 			}
 
 			r := chi.NewRouter()
-			r.Get("/", h.indexHandler())
+			r.Get("/", h.IndexHandler())
 
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
-			resp, body := testRequest(t, ts, tt.method, tt.url)
+			resp, body := test_utils.TestRequest(t, ts, tt.method, tt.url)
 			defer resp.Body.Close()
 
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)

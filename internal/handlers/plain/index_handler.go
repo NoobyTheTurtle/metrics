@@ -1,4 +1,4 @@
-package handlers
+package plain
 
 import (
 	_ "embed"
@@ -27,10 +27,10 @@ type IndexStorage interface {
 
 type indexHandler struct {
 	storage IndexStorage
-	logger  HandlersLogger
+	logger  HandlerLogger
 }
 
-func newIndexHandler(storage IndexStorage, logger HandlersLogger) *indexHandler {
+func newIndexHandler(storage IndexStorage, logger HandlerLogger) *indexHandler {
 	return &indexHandler{
 		storage: storage,
 		logger:  logger,
@@ -68,9 +68,4 @@ func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-
-func (h *handler) indexHandler() http.HandlerFunc {
-	handler := newIndexHandler(h.storage, h.logger)
-	return handler.ServeHTTP
 }
