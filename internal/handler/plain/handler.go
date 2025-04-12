@@ -8,19 +8,12 @@ import (
 
 type Handler struct {
 	storage HandlerStorage
-	logger  HandlerLogger
 }
 
-func NewHandler(storage HandlerStorage, logger HandlerLogger) *Handler {
+func NewHandler(storage HandlerStorage) *Handler {
 	return &Handler{
 		storage: storage,
-		logger:  logger,
 	}
-}
-
-func (h *Handler) IndexHandler() http.HandlerFunc {
-	handler := newIndexHandler(h.storage, h.logger)
-	return handler.ServeHTTP
 }
 
 func (h *Handler) ValueHandler() http.HandlerFunc {
@@ -29,10 +22,10 @@ func (h *Handler) ValueHandler() http.HandlerFunc {
 
 		switch metricType {
 		case Gauge:
-			handler := newValueGaugeHandler(h.storage, h.logger)
+			handler := newValueGaugeHandler(h.storage)
 			handler.ServeHTTP(w, r)
 		case Counter:
-			handler := newValueCounterHandler(h.storage, h.logger)
+			handler := newValueCounterHandler(h.storage)
 			handler.ServeHTTP(w, r)
 		default:
 			http.Error(w, "Unknown metric type", http.StatusNotFound)
@@ -46,10 +39,10 @@ func (h *Handler) UpdateHandler() http.HandlerFunc {
 
 		switch metricType {
 		case Gauge:
-			handler := newUpdateGaugeHandler(h.storage, h.logger)
+			handler := newUpdateGaugeHandler(h.storage)
 			handler.ServeHTTP(w, r)
 		case Counter:
-			handler := newUpdateCounterHandler(h.storage, h.logger)
+			handler := newUpdateCounterHandler(h.storage)
 			handler.ServeHTTP(w, r)
 		default:
 			http.Error(w, "Unknown metric type", http.StatusBadRequest)

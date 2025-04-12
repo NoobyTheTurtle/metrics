@@ -1,4 +1,4 @@
-package plain
+package html
 
 import (
 	_ "embed"
@@ -27,13 +27,11 @@ type IndexStorage interface {
 
 type indexHandler struct {
 	storage IndexStorage
-	logger  HandlerLogger
 }
 
-func newIndexHandler(storage IndexStorage, logger HandlerLogger) *indexHandler {
+func newIndexHandler(storage IndexStorage) *indexHandler {
 	return &indexHandler{
 		storage: storage,
-		logger:  logger,
 	}
 }
 

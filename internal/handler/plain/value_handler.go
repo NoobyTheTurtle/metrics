@@ -10,25 +10,21 @@ import (
 
 type valueGaugeHandler struct {
 	storage GaugeGetter
-	logger  HandlerLogger
 }
 
 type valueCounterHandler struct {
 	storage CounterGetter
-	logger  HandlerLogger
 }
 
-func newValueGaugeHandler(storage GaugeGetter, logger HandlerLogger) *valueGaugeHandler {
+func newValueGaugeHandler(storage GaugeGetter) *valueGaugeHandler {
 	return &valueGaugeHandler{
 		storage: storage,
-		logger:  logger,
 	}
 }
 
-func newValueCounterHandler(storage CounterGetter, logger HandlerLogger) *valueCounterHandler {
+func newValueCounterHandler(storage CounterGetter) *valueCounterHandler {
 	return &valueCounterHandler{
 		storage: storage,
-		logger:  logger,
 	}
 }
 

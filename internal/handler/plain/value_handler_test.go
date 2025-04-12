@@ -17,7 +17,7 @@ func Test_handler_valueHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupMocks         func(*gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger)
+		setupMocks         func(*gomock.Controller) *MockHandlerStorage
 		expectedStatusCode int
 		expectedBody       string
 	}{
@@ -25,11 +25,11 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "successful gauge retrieval",
 			method: http.MethodGet,
 			url:    "/value/gauge/HeapObjects",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 				mockStorage.EXPECT().GetGauge("HeapObjects").Return(1.2, true)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       "1.2",
@@ -38,11 +38,11 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "successful counter retrieval",
 			method: http.MethodGet,
 			url:    "/value/counter/PollCount",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 				mockStorage.EXPECT().GetCounter("PollCount").Return(int64(30), true)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       "30",
@@ -51,11 +51,11 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "gauge not found",
 			method: http.MethodGet,
 			url:    "/value/gauge/NonExistentGauge",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 				mockStorage.EXPECT().GetGauge("NonExistentGauge").Return(0.0, false)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusNotFound,
 			expectedBody:       "Gauge not found\n",
@@ -64,11 +64,11 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "counter not found",
 			method: http.MethodGet,
 			url:    "/value/counter/NonExistentCounter",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 				mockStorage.EXPECT().GetCounter("NonExistentCounter").Return(int64(0), false)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusNotFound,
 			expectedBody:       "Counter not found\n",
@@ -77,10 +77,10 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "wrong method",
 			method: http.MethodPost,
 			url:    "/value/gauge/HeapObjects",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 		},
@@ -88,10 +88,9 @@ func Test_handler_valueHandler(t *testing.T) {
 			name:   "unknown metric type",
 			method: http.MethodGet,
 			url:    "/value/unknown/Metric",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusNotFound,
 			expectedBody:       "Unknown metric type\n",
@@ -103,11 +102,10 @@ func Test_handler_valueHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			storage, logger := tt.setupMocks(ctrl)
+			storage := tt.setupMocks(ctrl)
 
 			h := &Handler{
 				storage: storage,
-				logger:  logger,
 			}
 
 			r := chi.NewRouter()

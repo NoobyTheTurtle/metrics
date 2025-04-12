@@ -1,4 +1,4 @@
-package plain
+package html
 
 import (
 	"net/http"
@@ -86,7 +86,7 @@ func Test_handler_indexHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupMocks         func(*gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger)
+		setupMocks         func(*gomock.Controller) *MockHandlerStorage
 		expectedStatusCode int
 		expectedContains   []string
 	}{
@@ -94,7 +94,7 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "successful metrics page retrieval",
 			method: http.MethodGet,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 
 				gauges := map[string]float64{
@@ -108,8 +108,7 @@ func Test_handler_indexHandler(t *testing.T) {
 				mockStorage.EXPECT().GetAllGauges().Return(gauges)
 				mockStorage.EXPECT().GetAllCounters().Return(counters)
 
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -128,14 +127,13 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "empty metrics",
 			method: http.MethodGet,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 
 				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
 				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
 
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
 			expectedContains: []string{
@@ -148,10 +146,9 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "wrong method",
 			method: http.MethodPost,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockHandlerStorage, *MockHandlerLogger) {
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockLogger := NewMockHandlerLogger(ctrl)
-				return mockStorage, mockLogger
+				return mockStorage
 			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 			expectedContains:   nil,
@@ -163,11 +160,10 @@ func Test_handler_indexHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			storage, logger := tt.setupMocks(ctrl)
+			storage := tt.setupMocks(ctrl)
 
 			h := &Handler{
 				storage: storage,
-				logger:  logger,
 			}
 
 			r := chi.NewRouter()
