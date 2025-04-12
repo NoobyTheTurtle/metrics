@@ -3,6 +3,8 @@ package json
 import (
 	"io"
 	"net/http"
+
+	"github.com/NoobyTheTurtle/metrics/internal/model"
 )
 
 type ValueStorage interface {
@@ -21,7 +23,7 @@ func newValueHandler(storage ValueStorage) *valueHandler {
 }
 
 func (h *valueHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var metric Metrics
+	var metric model.Metrics
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

@@ -1,4 +1,4 @@
-package json
+package model
 
 //go:generate easyjson -all metrics.go
 type Metrics struct {

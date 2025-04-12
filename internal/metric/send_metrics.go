@@ -1,8 +1,11 @@
 package metric
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+
+	"github.com/NoobyTheTurtle/metrics/internal/model"
 )
 
 const (
@@ -12,24 +15,39 @@ const (
 
 func (m *Metrics) SendMetrics() {
 	for name, value := range m.Gauges {
-		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverURL, Gauge, name, value)
-		m.sendMetric(url)
+		metricJSON := model.Metrics{
+			ID:    string(name),
+			MType: Gauge,
+			Value: &value,
+		}
+		m.sendJSONMetric(metricJSON)
 	}
 
 	for name, value := range m.Counters {
-		url := fmt.Sprintf("%s/update/%s/%s/%v", m.serverURL, Counter, name, value)
-		m.sendMetric(url)
+		metricJSON := model.Metrics{
+			ID:    string(name),
+			MType: Counter,
+			Delta: &value,
+		}
+		m.sendJSONMetric(metricJSON)
 	}
 }
 
-func (m *Metrics) sendMetric(url string) {
-	req, err := http.NewRequest(http.MethodPost, url, http.NoBody)
+func (m *Metrics) sendJSONMetric(metric model.Metrics) {
+	jsonData, err := metric.MarshalJSON()
+	if err != nil {
+		m.logger.Error("Error marshaling metric: %v", err)
+		return
+	}
+
+	url := fmt.Sprintf("%s/update/", m.serverURL)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		m.logger.Error("Error creating request: %v", err)
 		return
 	}
 
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := m.client.Do(req)
 	if err != nil {

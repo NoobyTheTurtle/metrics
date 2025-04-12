@@ -1,23 +1,27 @@
 package metric
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestMetrics_SendMetrics(t *testing.T) {
 	tests := []struct {
-		name                string
-		gauges              map[GaugeMetric]float64
-		counters            map[CounterMetric]int64
-		serverHandler       http.HandlerFunc
-		expectedGaugeURLs   map[string]bool
-		expectedCounterURLs map[string]bool
-		statusCode          int
+		name             string
+		gauges           map[GaugeMetric]float64
+		counters         map[CounterMetric]int64
+		serverHandler    http.HandlerFunc
+		expectedGauges   map[string]float64
+		expectedCounters map[string]int64
+		statusCode       int
 	}{
 		{
 			name: "success send metrics",
@@ -31,12 +35,12 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			},
-			expectedGaugeURLs: map[string]bool{
-				"/update/gauge/Alloc/1.1":       true,
-				"/update/gauge/HeapObjects/2.2": true,
+			expectedGauges: map[string]float64{
+				"Alloc":       1.1,
+				"HeapObjects": 2.2,
 			},
-			expectedCounterURLs: map[string]bool{
-				"/update/counter/PollCount/5": true,
+			expectedCounters: map[string]int64{
+				"PollCount": 5,
 			},
 			statusCode: http.StatusOK,
 		},
@@ -51,11 +55,11 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 			},
-			expectedGaugeURLs: map[string]bool{
-				"/update/gauge/Alloc/1.1": true,
+			expectedGauges: map[string]float64{
+				"Alloc": 1.1,
 			},
-			expectedCounterURLs: map[string]bool{
-				"/update/counter/PollCount/5": true,
+			expectedCounters: map[string]int64{
+				"PollCount": 5,
 			},
 			statusCode: http.StatusInternalServerError,
 		},
@@ -66,25 +70,43 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			serverHandler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			},
-			expectedGaugeURLs:   map[string]bool{},
-			expectedCounterURLs: map[string]bool{},
-			statusCode:          http.StatusOK,
+			expectedGauges:   map[string]float64{},
+			expectedCounters: map[string]int64{},
+			statusCode:       http.StatusOK,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "text/plain; charset=utf-8", r.Header.Get("Content-Type"))
+				assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 				assert.Equal(t, http.MethodPost, r.Method)
+				assert.Equal(t, "/update/", r.URL.Path)
 
-				path := r.URL.Path
-				if _, ok := tt.expectedGaugeURLs[path]; ok {
-					delete(tt.expectedGaugeURLs, path)
-				} else if _, ok := tt.expectedCounterURLs[path]; ok {
-					delete(tt.expectedCounterURLs, path)
+				body, err := io.ReadAll(r.Body)
+				require.NoError(t, err)
+				defer r.Body.Close()
+
+				var metric model.Metrics
+				err = json.Unmarshal(body, &metric)
+				require.NoError(t, err)
+
+				if metric.MType == Gauge {
+					expectedValue, exists := tt.expectedGauges[metric.ID]
+					assert.True(t, exists, "Unexpected gauge metric: %s", metric.ID)
+					if exists {
+						assert.Equal(t, expectedValue, *metric.Value)
+						delete(tt.expectedGauges, metric.ID)
+					}
+				} else if metric.MType == Counter {
+					expectedValue, exists := tt.expectedCounters[metric.ID]
+					assert.True(t, exists, "Unexpected counter metric: %s", metric.ID)
+					if exists {
+						assert.Equal(t, expectedValue, *metric.Delta)
+						delete(tt.expectedCounters, metric.ID)
+					}
 				} else {
-					t.Errorf("Unexpected request URL: %s", path)
+					t.Errorf("Unexpected metric type: %s", metric.MType)
 				}
 
 				tt.serverHandler(w, r)
@@ -96,7 +118,8 @@ func TestMetrics_SendMetrics(t *testing.T) {
 			mockLogger := NewMockMetricsLogger(ctrl)
 
 			if tt.statusCode != http.StatusOK {
-				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(len(tt.gauges) + len(tt.counters))
+				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).
+					Times(len(tt.gauges) + len(tt.counters))
 			}
 
 			metrics := &Metrics{
@@ -109,30 +132,52 @@ func TestMetrics_SendMetrics(t *testing.T) {
 
 			metrics.SendMetrics()
 
-			assert.Empty(t, tt.expectedGaugeURLs)
-			assert.Empty(t, tt.expectedCounterURLs)
+			assert.Empty(t, tt.expectedGauges)
+			assert.Empty(t, tt.expectedCounters)
 		})
 	}
 }
 
-func TestSendMetric(t *testing.T) {
+func TestSendJSONMetric(t *testing.T) {
 	tests := []struct {
-		name          string
-		serverHandler http.HandlerFunc
-		statusCode    int
+		name       string
+		metric     model.Metrics
+		statusCode int
 	}{
 		{
-			name: "success send metric",
-			serverHandler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			},
+			name: "success send gauge metric",
+			metric: func() model.Metrics {
+				value := 1.1
+				return model.Metrics{
+					ID:    "Alloc",
+					MType: Gauge,
+					Value: &value,
+				}
+			}(),
+			statusCode: http.StatusOK,
+		},
+		{
+			name: "success send counter metric",
+			metric: func() model.Metrics {
+				delta := int64(5)
+				return model.Metrics{
+					ID:    "PollCount",
+					MType: Counter,
+					Delta: &delta,
+				}
+			}(),
 			statusCode: http.StatusOK,
 		},
 		{
 			name: "server error",
-			serverHandler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusInternalServerError)
-			},
+			metric: func() model.Metrics {
+				value := 1.1
+				return model.Metrics{
+					ID:    "Alloc",
+					MType: Gauge,
+					Value: &value,
+				}
+			}(),
 			statusCode: http.StatusInternalServerError,
 		},
 	}
@@ -140,9 +185,32 @@ func TestSendMetric(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "text/plain; charset=utf-8", r.Header.Get("Content-Type"))
+				assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 				assert.Equal(t, http.MethodPost, r.Method)
-				tt.serverHandler(w, r)
+				assert.Equal(t, "/update/", r.URL.Path)
+
+				body, err := io.ReadAll(r.Body)
+				assert.NoError(t, err)
+				defer r.Body.Close()
+
+				var receivedMetric model.Metrics
+				err = json.Unmarshal(body, &receivedMetric)
+				assert.NoError(t, err)
+
+				assert.Equal(t, tt.metric.ID, receivedMetric.ID)
+				assert.Equal(t, tt.metric.MType, receivedMetric.MType)
+
+				if tt.metric.Delta != nil {
+					assert.NotNil(t, receivedMetric.Delta)
+					assert.Equal(t, *tt.metric.Delta, *receivedMetric.Delta)
+				}
+
+				if tt.metric.Value != nil {
+					assert.NotNil(t, receivedMetric.Value)
+					assert.Equal(t, *tt.metric.Value, *receivedMetric.Value)
+				}
+
+				w.WriteHeader(tt.statusCode)
 			}))
 			defer server.Close()
 
@@ -162,7 +230,7 @@ func TestSendMetric(t *testing.T) {
 				client:    &http.Client{},
 			}
 
-			metrics.sendMetric(server.URL + "/update/gauge/testMetric/1.1")
+			metrics.sendJSONMetric(tt.metric)
 		})
 	}
 }
