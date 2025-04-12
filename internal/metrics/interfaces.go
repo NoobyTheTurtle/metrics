@@ -4,10 +4,10 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
 )
 
-type metricsLogger interface {
+type MetricsLogger interface {
 	Warn(format string, args ...any)
 	Error(format string, args ...any)
 }
 
-var _ metricsLogger = (*logger.ZapLogger)(nil)
-var _ metricsLogger = (*MockmetricsLogger)(nil)
+var _ MetricsLogger = (*logger.ZapLogger)(nil)
+var _ MetricsLogger = (*MockMetricsLogger)(nil)

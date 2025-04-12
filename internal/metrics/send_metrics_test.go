@@ -93,7 +93,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			mockLogger := NewMockmetricsLogger(ctrl)
+			mockLogger := NewMockMetricsLogger(ctrl)
 
 			if tt.statusCode != http.StatusOK {
 				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(len(tt.gauges) + len(tt.counters))
@@ -148,7 +148,7 @@ func TestSendMetric(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			mockLogger := NewMockmetricsLogger(ctrl)
+			mockLogger := NewMockMetricsLogger(ctrl)
 
 			if tt.statusCode != http.StatusOK {
 				mockLogger.EXPECT().Warn("Server returned status code: %d", tt.statusCode).Times(1)

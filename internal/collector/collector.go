@@ -5,12 +5,12 @@ import (
 )
 
 type Collector struct {
-	metrics      metricsCollector
-	logger       collectorLogger
+	metrics      MetricsCollector
+	logger       CollectorLogger
 	pollInterval time.Duration
 }
 
-func NewCollector(metrics metricsCollector, logger collectorLogger, pollInterval uint) *Collector {
+func NewCollector(metrics MetricsCollector, logger CollectorLogger, pollInterval uint) *Collector {
 	return &Collector{
 		metrics:      metrics,
 		logger:       logger,

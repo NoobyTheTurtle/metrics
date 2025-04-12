@@ -20,17 +20,17 @@ type pageData struct {
 	Counters []metricData
 }
 
-type indexStorage interface {
-	gaugesGetter
-	countersGetter
+type IndexStorage interface {
+	GaugesGetter
+	CountersGetter
 }
 
 type indexHandler struct {
-	storage indexStorage
-	logger  handlersLogger
+	storage IndexStorage
+	logger  HandlersLogger
 }
 
-func newIndexHandler(storage indexStorage, logger handlersLogger) *indexHandler {
+func newIndexHandler(storage IndexStorage, logger HandlersLogger) *indexHandler {
 	return &indexHandler{
 		storage: storage,
 		logger:  logger,

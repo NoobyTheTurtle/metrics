@@ -5,12 +5,12 @@ import (
 )
 
 type Reporter struct {
-	metrics        metricsReporter
-	logger         reporterLogger
+	metrics        MetricsReporter
+	logger         ReporterLogger
 	reportInterval time.Duration
 }
 
-func NewReporter(metrics metricsReporter, logger reporterLogger, reportInterval uint) *Reporter {
+func NewReporter(metrics MetricsReporter, logger ReporterLogger, reportInterval uint) *Reporter {
 	return &Reporter{
 		metrics:        metrics,
 		logger:         logger,

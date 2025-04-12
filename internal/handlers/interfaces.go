@@ -5,54 +5,54 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage"
 )
 
-type gaugeGetter interface {
+type GaugeGetter interface {
 	GetGauge(name string) (float64, bool)
 }
 
-type gaugeSetter interface {
+type GaugeSetter interface {
 	UpdateGauge(name string, value float64) error
 }
 
-type gaugesGetter interface {
+type GaugesGetter interface {
 	GetAllGauges() map[string]float64
 }
 
-type counterGetter interface {
+type CounterGetter interface {
 	GetCounter(name string) (int64, bool)
 }
 
-type counterSetter interface {
+type CounterSetter interface {
 	UpdateCounter(name string, value int64) error
 }
 
-type countersGetter interface {
+type CountersGetter interface {
 	GetAllCounters() map[string]int64
 }
 
-type gaugeStorage interface {
-	gaugeGetter
-	gaugeSetter
-	gaugesGetter
+type GaugeStorage interface {
+	GaugeGetter
+	GaugeSetter
+	GaugesGetter
 }
 
-type counterStorage interface {
-	counterGetter
-	counterSetter
-	countersGetter
+type CounterStorage interface {
+	CounterGetter
+	CounterSetter
+	CountersGetter
 }
 
-type serverStorage interface {
-	gaugeStorage
-	counterStorage
+type ServerStorage interface {
+	GaugeStorage
+	CounterStorage
 }
 
-var _ serverStorage = (*storage.MemStorage)(nil)
-var _ serverStorage = (*MockserverStorage)(nil)
+var _ ServerStorage = (*storage.MemStorage)(nil)
+var _ ServerStorage = (*MockServerStorage)(nil)
 
-type handlersLogger interface {
+type HandlersLogger interface {
 	Info(format string, args ...any)
 	Error(format string, args ...any)
 }
 
-var _ handlersLogger = (*logger.ZapLogger)(nil)
-var _ handlersLogger = (*MockhandlersLogger)(nil)
+var _ HandlersLogger = (*logger.ZapLogger)(nil)
+var _ HandlersLogger = (*MockHandlersLogger)(nil)

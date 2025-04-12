@@ -62,7 +62,7 @@ func TestLoggingMiddleware(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockLog := NewMockhandlersLogger(ctrl)
+			mockLog := NewMockHandlersLogger(ctrl)
 
 			mockLog.EXPECT().Info(
 				"uri=%s method=%s status=%d duration=%s size=%d",

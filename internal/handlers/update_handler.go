@@ -8,23 +8,23 @@ import (
 )
 
 type updateGaugeHandler struct {
-	storage gaugeSetter
-	logger  handlersLogger
+	storage GaugeSetter
+	logger  HandlersLogger
 }
 
 type updateCounterHandler struct {
-	storage counterSetter
-	logger  handlersLogger
+	storage CounterSetter
+	logger  HandlersLogger
 }
 
-func newUpdateGaugeHandler(storage gaugeSetter, logger handlersLogger) *updateGaugeHandler {
+func newUpdateGaugeHandler(storage GaugeSetter, logger HandlersLogger) *updateGaugeHandler {
 	return &updateGaugeHandler{
 		storage: storage,
 		logger:  logger,
 	}
 }
 
-func newUpdateCounterHandler(storage counterSetter, logger handlersLogger) *updateCounterHandler {
+func newUpdateCounterHandler(storage CounterSetter, logger HandlersLogger) *updateCounterHandler {
 	return &updateCounterHandler{
 		storage: storage,
 		logger:  logger,

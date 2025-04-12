@@ -10,7 +10,7 @@ import (
 func TestMetrics_UpdateMetrics(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockLogger := NewMockmetricsLogger(ctrl)
+	mockLogger := NewMockMetricsLogger(ctrl)
 
 	metrics := NewMetrics("localhost:8080", mockLogger, false)
 
@@ -39,7 +39,7 @@ func TestMetrics_UpdateMetrics(t *testing.T) {
 func TestMetrics_updateGaugeMemStats(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockLogger := NewMockmetricsLogger(ctrl)
+	mockLogger := NewMockMetricsLogger(ctrl)
 
 	metrics := NewMetrics("localhost:8080", mockLogger, false)
 
@@ -65,7 +65,7 @@ func TestMetrics_updateGaugeMemStats(t *testing.T) {
 func TestMetrics_updateGaugeRandomValue(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockLogger := NewMockmetricsLogger(ctrl)
+	mockLogger := NewMockMetricsLogger(ctrl)
 
 	metrics := NewMetrics("localhost:8080", mockLogger, false)
 
@@ -106,7 +106,7 @@ func TestMetrics_updateCounters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			mockLogger := NewMockmetricsLogger(ctrl)
+			mockLogger := NewMockMetricsLogger(ctrl)
 
 			metrics := NewMetrics("localhost:8080", mockLogger, false)
 

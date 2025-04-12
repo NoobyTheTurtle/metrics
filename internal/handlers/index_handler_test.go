@@ -84,7 +84,7 @@ func Test_handler_indexHandler(t *testing.T) {
 		name               string
 		method             string
 		url                string
-		setupMocks         func(*gomock.Controller) (*MockserverStorage, *MockhandlersLogger)
+		setupMocks         func(*gomock.Controller) (*MockServerStorage, *MockHandlersLogger)
 		expectedStatusCode int
 		expectedContains   []string
 	}{
@@ -92,8 +92,8 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "successful metrics page retrieval",
 			method: http.MethodGet,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockserverStorage, *MockhandlersLogger) {
-				mockStorage := NewMockserverStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockServerStorage, *MockHandlersLogger) {
+				mockStorage := NewMockServerStorage(ctrl)
 
 				gauges := map[string]float64{
 					"Alloc":       15.5,
@@ -106,7 +106,7 @@ func Test_handler_indexHandler(t *testing.T) {
 				mockStorage.EXPECT().GetAllGauges().Return(gauges)
 				mockStorage.EXPECT().GetAllCounters().Return(counters)
 
-				mockLogger := NewMockhandlersLogger(ctrl)
+				mockLogger := NewMockHandlersLogger(ctrl)
 				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusOK,
@@ -126,13 +126,13 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "empty metrics",
 			method: http.MethodGet,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockserverStorage, *MockhandlersLogger) {
-				mockStorage := NewMockserverStorage(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockServerStorage, *MockHandlersLogger) {
+				mockStorage := NewMockServerStorage(ctrl)
 
 				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
 				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
 
-				mockLogger := NewMockhandlersLogger(ctrl)
+				mockLogger := NewMockHandlersLogger(ctrl)
 				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusOK,
@@ -146,9 +146,9 @@ func Test_handler_indexHandler(t *testing.T) {
 			name:   "wrong method",
 			method: http.MethodPost,
 			url:    "/",
-			setupMocks: func(ctrl *gomock.Controller) (*MockserverStorage, *MockhandlersLogger) {
-				mockStorage := NewMockserverStorage(ctrl)
-				mockLogger := NewMockhandlersLogger(ctrl)
+			setupMocks: func(ctrl *gomock.Controller) (*MockServerStorage, *MockHandlersLogger) {
+				mockStorage := NewMockServerStorage(ctrl)
+				mockLogger := NewMockHandlersLogger(ctrl)
 				return mockStorage, mockLogger
 			},
 			expectedStatusCode: http.StatusMethodNotAllowed,

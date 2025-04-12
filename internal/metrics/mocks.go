@@ -15,32 +15,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockmetricsLogger is a mock of metricsLogger interface.
-type MockmetricsLogger struct {
+// MockMetricsLogger is a mock of MetricsLogger interface.
+type MockMetricsLogger struct {
 	ctrl     *gomock.Controller
-	recorder *MockmetricsLoggerMockRecorder
+	recorder *MockMetricsLoggerMockRecorder
 	isgomock struct{}
 }
 
-// MockmetricsLoggerMockRecorder is the mock recorder for MockmetricsLogger.
-type MockmetricsLoggerMockRecorder struct {
-	mock *MockmetricsLogger
+// MockMetricsLoggerMockRecorder is the mock recorder for MockMetricsLogger.
+type MockMetricsLoggerMockRecorder struct {
+	mock *MockMetricsLogger
 }
 
-// NewMockmetricsLogger creates a new mock instance.
-func NewMockmetricsLogger(ctrl *gomock.Controller) *MockmetricsLogger {
-	mock := &MockmetricsLogger{ctrl: ctrl}
-	mock.recorder = &MockmetricsLoggerMockRecorder{mock}
+// NewMockMetricsLogger creates a new mock instance.
+func NewMockMetricsLogger(ctrl *gomock.Controller) *MockMetricsLogger {
+	mock := &MockMetricsLogger{ctrl: ctrl}
+	mock.recorder = &MockMetricsLoggerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockmetricsLogger) EXPECT() *MockmetricsLoggerMockRecorder {
+func (m *MockMetricsLogger) EXPECT() *MockMetricsLoggerMockRecorder {
 	return m.recorder
 }
 
 // Error mocks base method.
-func (m *MockmetricsLogger) Error(format string, args ...any) {
+func (m *MockMetricsLogger) Error(format string, args ...any) {
 	m.ctrl.T.Helper()
 	varargs := []any{format}
 	for _, a := range args {
@@ -50,14 +50,14 @@ func (m *MockmetricsLogger) Error(format string, args ...any) {
 }
 
 // Error indicates an expected call of Error.
-func (mr *MockmetricsLoggerMockRecorder) Error(format any, args ...any) *gomock.Call {
+func (mr *MockMetricsLoggerMockRecorder) Error(format any, args ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{format}, args...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Error", reflect.TypeOf((*MockmetricsLogger)(nil).Error), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Error", reflect.TypeOf((*MockMetricsLogger)(nil).Error), varargs...)
 }
 
 // Warn mocks base method.
-func (m *MockmetricsLogger) Warn(format string, args ...any) {
+func (m *MockMetricsLogger) Warn(format string, args ...any) {
 	m.ctrl.T.Helper()
 	varargs := []any{format}
 	for _, a := range args {
@@ -67,8 +67,8 @@ func (m *MockmetricsLogger) Warn(format string, args ...any) {
 }
 
 // Warn indicates an expected call of Warn.
-func (mr *MockmetricsLoggerMockRecorder) Warn(format any, args ...any) *gomock.Call {
+func (mr *MockMetricsLoggerMockRecorder) Warn(format any, args ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{format}, args...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Warn", reflect.TypeOf((*MockmetricsLogger)(nil).Warn), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Warn", reflect.TypeOf((*MockMetricsLogger)(nil).Warn), varargs...)
 }

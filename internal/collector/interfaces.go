@@ -5,13 +5,13 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/metrics"
 )
 
-type collectorLogger interface {
+type CollectorLogger interface {
 	Info(format string, args ...any)
 }
 
-type metricsCollector interface {
+type MetricsCollector interface {
 	UpdateMetrics()
 }
 
-var _ collectorLogger = (*logger.ZapLogger)(nil)
-var _ metricsCollector = (*metrics.Metrics)(nil)
+var _ CollectorLogger = (*logger.ZapLogger)(nil)
+var _ MetricsCollector = (*metrics.Metrics)(nil)
