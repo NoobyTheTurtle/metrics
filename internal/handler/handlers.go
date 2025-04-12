@@ -13,32 +13,31 @@ import (
 )
 
 func InitHandlers(serverAddress string, store *storage.MemStorage, log *logger.ZapLogger) error {
-
 	r := chi.NewRouter()
 	r.Use(middleware.LogMiddleware(log))
 
 	// HTML handlers
 	htmlHandler := html.NewHandler(store)
-	htmlRouter := chi.NewRouter()
-	htmlRouter.Use(middleware.ContentTypeMiddleware(html.ContentTypeValue))
-	htmlRouter.Get("/", htmlHandler.IndexHandler())
-	r.Mount("/", htmlRouter)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.ContentTypeMiddleware(html.ContentTypeValue))
+		r.Get("/", htmlHandler.IndexHandler())
+	})
 
 	// Plain handlers
 	plainHandler := plain.NewHandler(store)
-	plainRouter := chi.NewRouter()
-	plainRouter.Use(middleware.ContentTypeMiddleware(plain.ContentTypeValue))
-	plainRouter.Get("/value/{metricType}/{metricName}", plainHandler.ValueHandler())
-	plainRouter.Post("/update/{metricType}/{metricName}/{metricValue}", plainHandler.UpdateHandler())
-	r.Mount("/", plainRouter)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.ContentTypeMiddleware(plain.ContentTypeValue))
+		r.Get("/value/{metricType}/{metricName}", plainHandler.ValueHandler())
+		r.Post("/update/{metricType}/{metricName}/{metricValue}", plainHandler.UpdateHandler())
+	})
 
 	// JSON handlers
 	jsonHandler := json.NewHandler(store)
-	jsonRouter := chi.NewRouter()
-	jsonRouter.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
-	jsonRouter.Post("/update", jsonHandler.UpdateHandler())
-	jsonRouter.Post("/value", jsonHandler.ValueHandler())
-	r.Mount("/", jsonRouter)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
+		r.Post("/update", jsonHandler.UpdateHandler())
+		r.Post("/value", jsonHandler.ValueHandler())
+	})
 
 	log.Info("Starting server on %s", serverAddress)
 	return http.ListenAndServe(serverAddress, r)
