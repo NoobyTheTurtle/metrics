@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,33 +16,44 @@ func TestLoggingMiddleware(t *testing.T) {
 		name           string
 		method         string
 		path           string
-		expectedStatus int
-		expectedBody   string
-		expectedFormat string
+		requestBody    []byte
+		responseStatus int
+		responseBody   string
+		handlerFunc    func(w http.ResponseWriter, r *http.Request)
 	}{
 		{
 			name:           "GET request",
 			method:         http.MethodGet,
 			path:           "/test/path",
-			expectedStatus: http.StatusOK,
-			expectedBody:   "base handler called",
-			expectedFormat: "Incoming request: %s %s",
+			responseStatus: http.StatusOK,
+			responseBody:   "get handler response",
+			handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("get handler response"))
+			},
 		},
 		{
-			name:           "POST request",
+			name:           "POST request with body",
 			method:         http.MethodPost,
-			path:           "/update/counter/metric/1",
-			expectedStatus: http.StatusOK,
-			expectedBody:   "base handler called",
-			expectedFormat: "Incoming request: %s %s",
+			path:           "/api/v1/update",
+			requestBody:    []byte(`{"metric":"test","value":123}`),
+			responseStatus: http.StatusCreated,
+			responseBody:   "post handler response",
+			handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+				w.Write([]byte("post handler response"))
+			},
 		},
 		{
-			name:           "PUT request",
+			name:           "Error response",
 			method:         http.MethodPut,
-			path:           "/api/v1/metrics",
-			expectedStatus: http.StatusOK,
-			expectedBody:   "base handler called",
-			expectedFormat: "Incoming request: %s %s",
+			path:           "/api/v1/error",
+			responseStatus: http.StatusBadRequest,
+			responseBody:   "error response",
+			handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("error response"))
+			},
 		},
 	}
 
@@ -52,22 +64,26 @@ func TestLoggingMiddleware(t *testing.T) {
 
 			mockLog := NewMockhandlersLogger(ctrl)
 
-			mockLog.EXPECT().Info(tc.expectedFormat, tc.method, tc.path).Times(1)
+			mockLog.EXPECT().Info(
+				"uri=%s method=%s status=%d duration=%s size=%d",
+				gomock.Eq(""),
+				tc.method,
+				tc.responseStatus,
+				gomock.Any(),
+				len(tc.responseBody),
+			).Times(1)
 
-			baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("base handler called"))
-			})
-
+			baseHandler := http.HandlerFunc(tc.handlerFunc)
 			handler := loggingMiddleware(mockLog)(baseHandler)
 
-			req, err := http.NewRequest(tc.method, tc.path, nil)
+			req, err := http.NewRequest(tc.method, tc.path, bytes.NewBuffer(tc.requestBody))
 			require.NoError(t, err)
-			recorder := httptest.NewRecorder()
 
+			recorder := httptest.NewRecorder()
 			handler.ServeHTTP(recorder, req)
 
-			assert.Equal(t, tc.expectedStatus, recorder.Code)
-			assert.Equal(t, tc.expectedBody, recorder.Body.String())
+			assert.Equal(t, tc.responseStatus, recorder.Code)
+			assert.Equal(t, tc.responseBody, recorder.Body.String())
 		})
 	}
 }
