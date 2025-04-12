@@ -26,7 +26,7 @@ func Test_handler_updateHandler(t *testing.T) {
 			url:    "/update/gauge/HeapObjects/7770",
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(nil)
+				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(7770.0, nil)
 
 				return mockStorage
 			},
@@ -38,7 +38,7 @@ func Test_handler_updateHandler(t *testing.T) {
 			url:    "/update/counter/PollCount/30",
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(nil)
+				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(int64(30), nil)
 
 				return mockStorage
 			},
@@ -116,7 +116,7 @@ func Test_handler_updateHandler(t *testing.T) {
 			url:    "/update/gauge/HeapObjects/7770",
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(errors.New("gauge update error"))
+				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(7770.0, errors.New("gauge update error"))
 
 				return mockStorage
 			},
@@ -128,7 +128,7 @@ func Test_handler_updateHandler(t *testing.T) {
 			url:    "/update/counter/PollCount/30",
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(errors.New("counter update error"))
+				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(int64(30), errors.New("counter update error"))
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusInternalServerError,
@@ -152,7 +152,7 @@ func Test_handler_updateHandler(t *testing.T) {
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
-			resp, _ := testutil.TestRequest(t, ts, tt.method, tt.url)
+			resp, _ := testutil.TestRequest(t, ts, tt.method, tt.url, "")
 			defer resp.Body.Close()
 
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)

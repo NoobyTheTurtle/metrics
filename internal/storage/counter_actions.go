@@ -7,9 +7,9 @@ func (ms *MemStorage) GetCounter(name string) (int64, bool) {
 	return value, exists
 }
 
-func (ms *MemStorage) UpdateCounter(name string, value int64) error {
+func (ms *MemStorage) UpdateCounter(name string, value int64) (int64, error) {
 	ms.counters[name] += value
-	return nil
+	return ms.counters[name], nil
 }
 
 func (ms *MemStorage) GetAllCounters() map[string]int64 {

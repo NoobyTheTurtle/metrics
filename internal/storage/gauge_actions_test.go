@@ -1,9 +1,10 @@
 package storage
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMemStorage_GetGauge(t *testing.T) {
@@ -88,10 +89,10 @@ func TestMemStorage_UpdateGauge(t *testing.T) {
 				gauges: tt.storage,
 			}
 
-			err := ms.UpdateGauge(tt.gaugeName, tt.updateValue)
+			result, err := ms.UpdateGauge(tt.gaugeName, tt.updateValue)
 
 			require.NoError(t, err)
-
+			assert.Equal(t, tt.updateValue, result)
 			assert.Equal(t, tt.expectedStorage, ms.gauges)
 
 			value, exists := ms.GetGauge(tt.gaugeName)
@@ -99,4 +100,17 @@ func TestMemStorage_UpdateGauge(t *testing.T) {
 			assert.Equal(t, tt.expectedStorage[tt.gaugeName], value)
 		})
 	}
+}
+
+func TestMemStorage_GetAllGauges(t *testing.T) {
+	ms := &MemStorage{
+		gauges: map[string]float64{
+			"gauge1": 1.1,
+			"gauge2": 2.2,
+		},
+	}
+
+	gauges := ms.GetAllGauges()
+
+	assert.Equal(t, ms.gauges, gauges)
 }

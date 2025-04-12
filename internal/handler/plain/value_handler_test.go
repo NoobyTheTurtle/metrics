@@ -114,7 +114,7 @@ func Test_handler_valueHandler(t *testing.T) {
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
-			resp, body := testutil.TestRequest(t, ts, tt.method, tt.url)
+			resp, body := testutil.TestRequest(t, ts, tt.method, tt.url, "")
 			defer resp.Body.Close()
 
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)

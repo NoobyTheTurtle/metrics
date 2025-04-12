@@ -79,11 +79,12 @@ func (m *MockGaugeSetter) EXPECT() *MockGaugeSetterMockRecorder {
 }
 
 // UpdateGauge mocks base method.
-func (m *MockGaugeSetter) UpdateGauge(name string, value float64) error {
+func (m *MockGaugeSetter) UpdateGauge(name string, value float64) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateGauge", name, value)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateGauge indicates an expected call of UpdateGauge.
@@ -194,11 +195,12 @@ func (m *MockCounterSetter) EXPECT() *MockCounterSetterMockRecorder {
 }
 
 // UpdateCounter mocks base method.
-func (m *MockCounterSetter) UpdateCounter(name string, value int64) error {
+func (m *MockCounterSetter) UpdateCounter(name string, value int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateCounter", name, value)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateCounter indicates an expected call of UpdateCounter.
@@ -299,11 +301,12 @@ func (mr *MockGaugeStorageMockRecorder) GetGauge(name any) *gomock.Call {
 }
 
 // UpdateGauge mocks base method.
-func (m *MockGaugeStorage) UpdateGauge(name string, value float64) error {
+func (m *MockGaugeStorage) UpdateGauge(name string, value float64) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateGauge", name, value)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateGauge indicates an expected call of UpdateGauge.
@@ -366,11 +369,12 @@ func (mr *MockCounterStorageMockRecorder) GetCounter(name any) *gomock.Call {
 }
 
 // UpdateCounter mocks base method.
-func (m *MockCounterStorage) UpdateCounter(name string, value int64) error {
+func (m *MockCounterStorage) UpdateCounter(name string, value int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateCounter", name, value)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateCounter indicates an expected call of UpdateCounter.
@@ -462,11 +466,12 @@ func (mr *MockHandlerStorageMockRecorder) GetGauge(name any) *gomock.Call {
 }
 
 // UpdateCounter mocks base method.
-func (m *MockHandlerStorage) UpdateCounter(name string, value int64) error {
+func (m *MockHandlerStorage) UpdateCounter(name string, value int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateCounter", name, value)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateCounter indicates an expected call of UpdateCounter.
@@ -476,11 +481,12 @@ func (mr *MockHandlerStorageMockRecorder) UpdateCounter(name, value any) *gomock
 }
 
 // UpdateGauge mocks base method.
-func (m *MockHandlerStorage) UpdateGauge(name string, value float64) error {
+func (m *MockHandlerStorage) UpdateGauge(name string, value float64) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateGauge", name, value)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateGauge indicates an expected call of UpdateGauge.

@@ -12,14 +12,12 @@ func NewHandler(storage HandlerStorage) *Handler {
 	}
 }
 
-func (h *Handler) ValueHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Implement
-	}
+func (h *Handler) UpdateHandler() http.HandlerFunc {
+	handler := newUpdateHandler(h.storage)
+	return handler.ServeHTTP
 }
 
-func (h *Handler) UpdateHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Implement
-	}
+func (h *Handler) ValueHandler() http.HandlerFunc {
+	handler := newValueHandler(h.storage)
+	return handler.ServeHTTP
 }

@@ -1,9 +1,10 @@
 package storage
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMemStorage_GetCounter(t *testing.T) {
@@ -53,6 +54,7 @@ func TestMemStorage_UpdateCounter(t *testing.T) {
 		counterName     string
 		updateValue     int64
 		expectedStorage map[string]int64
+		expectedResult  int64
 	}{
 		{
 			name: "create new counter",
@@ -67,6 +69,7 @@ func TestMemStorage_UpdateCounter(t *testing.T) {
 				"counter2": 20,
 				"counter3": 5,
 			},
+			expectedResult: 5,
 		},
 		{
 			name: "update existing counter",
@@ -80,6 +83,7 @@ func TestMemStorage_UpdateCounter(t *testing.T) {
 				"counter1": 15,
 				"counter2": 20,
 			},
+			expectedResult: 15,
 		},
 	}
 	for _, tt := range tests {
@@ -88,10 +92,10 @@ func TestMemStorage_UpdateCounter(t *testing.T) {
 				counters: tt.storage,
 			}
 
-			err := ms.UpdateCounter(tt.counterName, tt.updateValue)
+			result, err := ms.UpdateCounter(tt.counterName, tt.updateValue)
 
 			require.NoError(t, err)
-
+			assert.Equal(t, tt.expectedResult, result)
 			assert.Equal(t, tt.expectedStorage, ms.counters)
 
 			value, exists := ms.GetCounter(tt.counterName)
@@ -99,4 +103,17 @@ func TestMemStorage_UpdateCounter(t *testing.T) {
 			assert.Equal(t, tt.expectedStorage[tt.counterName], value)
 		})
 	}
+}
+
+func TestMemStorage_GetAllCounters(t *testing.T) {
+	ms := &MemStorage{
+		counters: map[string]int64{
+			"counter1": 1,
+			"counter2": 2,
+		},
+	}
+
+	counters := ms.GetAllCounters()
+
+	assert.Equal(t, ms.counters, counters)
 }

@@ -9,7 +9,7 @@ type GaugeGetter interface {
 }
 
 type GaugeSetter interface {
-	UpdateGauge(name string, value float64) error
+	UpdateGauge(name string, value float64) (float64, error)
 }
 
 type GaugesGetter interface {
@@ -21,7 +21,7 @@ type CounterGetter interface {
 }
 
 type CounterSetter interface {
-	UpdateCounter(name string, value int64) error
+	UpdateCounter(name string, value int64) (int64, error)
 }
 
 type CountersGetter interface {

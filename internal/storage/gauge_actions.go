@@ -7,9 +7,9 @@ func (ms *MemStorage) GetGauge(name string) (float64, bool) {
 	return value, exists
 }
 
-func (ms *MemStorage) UpdateGauge(name string, value float64) error {
+func (ms *MemStorage) UpdateGauge(name string, value float64) (float64, error) {
 	ms.gauges[name] = value
-	return nil
+	return ms.gauges[name], nil
 }
 
 func (ms *MemStorage) GetAllGauges() map[string]float64 {
