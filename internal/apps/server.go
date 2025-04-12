@@ -14,8 +14,14 @@ func StartServer() error {
 	}
 
 	store := storage.NewMemStorage()
-	log := logger.NewStdLogger(logger.DebugLevel)
 
-	log.Info("Starting server...")
-	return handlers.InitHandlers(config.ServerAddress, store, log)
+	isDev := config.AppEnv == configs.DefaultAppEnv
+
+	l, err := logger.NewZapLogger(config.LogLevel, isDev)
+	if err != nil {
+		return err
+	}
+	defer l.Sync()
+
+	return handlers.InitHandlers(config.ServerAddress, store, l)
 }

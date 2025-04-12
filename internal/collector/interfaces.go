@@ -13,5 +13,5 @@ type metricsCollector interface {
 	UpdateMetrics()
 }
 
-var _ collectorLogger = (*logger.StdLogger)(nil)
+var _ collectorLogger = (*logger.ZapLogger)(nil)
 var _ metricsCollector = (*metrics.Metrics)(nil)

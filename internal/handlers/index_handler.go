@@ -37,23 +37,9 @@ func newIndexHandler(storage indexStorage, logger handlersLogger) *indexHandler 
 	}
 }
 
-func mapGauges(gauges map[string]float64) []metricData {
-	result := make([]metricData, 0, len(gauges))
-	for name, value := range gauges {
-		result = append(result, metricData{
-			Name:  name,
-			Value: value,
-		})
-	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Name < result[j].Name
-	})
-	return result
-}
-
-func mapCounters(counters map[string]int64) []metricData {
-	result := make([]metricData, 0, len(counters))
-	for name, value := range counters {
+func mapMetrics[T any](metrics map[string]T) []metricData {
+	result := make([]metricData, 0, len(metrics))
+	for name, value := range metrics {
 		result = append(result, metricData{
 			Name:  name,
 			Value: value,
@@ -73,8 +59,8 @@ func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := pageData{
-		Gauges:   mapGauges(h.storage.GetAllGauges()),
-		Counters: mapCounters(h.storage.GetAllCounters()),
+		Gauges:   mapMetrics(h.storage.GetAllGauges()),
+		Counters: mapMetrics(h.storage.GetAllCounters()),
 	}
 
 	w.Header().Set("Content-Type", "text/html")

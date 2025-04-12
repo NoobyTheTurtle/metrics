@@ -11,6 +11,8 @@ type AgentConfig struct {
 	PollInterval   uint   `env:"POLL_INTERVAL"`
 	ReportInterval uint   `env:"REPORT_INTERVAL"`
 	ServerAddress  string `env:"ADDRESS"`
+	LogLevel       string `env:"LOG_LEVEL"`
+	AppEnv         string `env:"APP_ENV"`
 }
 
 func NewAgentConfig() (*AgentConfig, error) {
@@ -18,6 +20,8 @@ func NewAgentConfig() (*AgentConfig, error) {
 		PollInterval:   DefaultPollInterval,
 		ReportInterval: DefaultReportInterval,
 		ServerAddress:  DefaultServerAddress,
+		LogLevel:       DefaultLogLevel,
+		AppEnv:         DefaultAppEnv,
 	}
 
 	if err := config.parseFlags(); err != nil {

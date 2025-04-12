@@ -23,5 +23,6 @@ func InitHandlers(serverAddress string, storage serverStorage, log handlersLogge
 	r.Get("/value/{metricType}/{metricName}", h.valueHandler())
 	r.Post("/update/{metricType}/{metricName}/{metricValue}", h.updateHandler())
 
+	log.Info("Starting server on %s", serverAddress)
 	return http.ListenAndServe(serverAddress, r)
 }

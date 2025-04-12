@@ -9,11 +9,15 @@ import (
 
 type ServerConfig struct {
 	ServerAddress string `env:"ADDRESS"`
+	LogLevel      string `env:"LOG_LEVEL"`
+	AppEnv        string `env:"APP_ENV"`
 }
 
 func NewServerConfig() (*ServerConfig, error) {
 	config := &ServerConfig{
 		ServerAddress: DefaultServerAddress,
+		LogLevel:      DefaultLogLevel,
+		AppEnv:        DefaultAppEnv,
 	}
 
 	if err := config.parseFlags(); err != nil {

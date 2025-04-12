@@ -54,5 +54,5 @@ type handlersLogger interface {
 	Error(format string, args ...any)
 }
 
-var _ handlersLogger = (*logger.StdLogger)(nil)
+var _ handlersLogger = (*logger.ZapLogger)(nil)
 var _ handlersLogger = (*MockhandlersLogger)(nil)

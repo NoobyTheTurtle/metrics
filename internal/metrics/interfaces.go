@@ -9,5 +9,5 @@ type metricsLogger interface {
 	Error(format string, args ...any)
 }
 
-var _ metricsLogger = (*logger.StdLogger)(nil)
+var _ metricsLogger = (*logger.ZapLogger)(nil)
 var _ metricsLogger = (*MockmetricsLogger)(nil)

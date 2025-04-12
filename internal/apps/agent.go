@@ -14,16 +14,23 @@ func StartAgent() error {
 		return err
 	}
 
-	log := logger.NewStdLogger(logger.DebugLevel)
-	metric := metrics.NewMetrics(config.ServerAddress, log, false)
+	isDev := config.AppEnv == configs.DefaultAppEnv
 
-	metricCollector := collector.NewCollector(metric, log, config.PollInterval)
-	metricReporter := reporter.NewReporter(metric, log, config.ReportInterval)
+	l, err := logger.NewZapLogger(config.LogLevel, isDev)
+	if err != nil {
+		return err
+	}
+	defer l.Sync()
+
+	metric := metrics.NewMetrics(config.ServerAddress, l, !isDev)
+
+	metricCollector := collector.NewCollector(metric, l, config.PollInterval)
+	metricReporter := reporter.NewReporter(metric, l, config.ReportInterval)
 
 	go metricCollector.Run()
 
 	go metricReporter.Run()
 
-	log.Info("Starting agent...")
+	l.Info("Starting agent...")
 	select {}
 }

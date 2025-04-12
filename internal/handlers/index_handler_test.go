@@ -39,7 +39,7 @@ func Test_mapGauges(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := mapGauges(tt.input)
+			result := mapMetrics(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -73,7 +73,7 @@ func Test_mapCounters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := mapCounters(tt.input)
+			result := mapMetrics(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
