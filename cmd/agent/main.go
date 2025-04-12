@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/NoobyTheTurtle/metrics/internal/apps"
+	"github.com/NoobyTheTurtle/metrics/internal/app"
 )
 
 func main() {
-	if err := apps.StartAgent(); err != nil {
+	if err := app.StartAgent(); err != nil {
 		log.Fatal(err)
 	}
 }

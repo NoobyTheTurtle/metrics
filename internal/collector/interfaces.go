@@ -2,7 +2,7 @@ package collector
 
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
-	"github.com/NoobyTheTurtle/metrics/internal/metrics"
+	"github.com/NoobyTheTurtle/metrics/internal/metric"
 )
 
 type CollectorLogger interface {
@@ -14,4 +14,4 @@ type MetricsCollector interface {
 }
 
 var _ CollectorLogger = (*logger.ZapLogger)(nil)
-var _ MetricsCollector = (*metrics.Metrics)(nil)
+var _ MetricsCollector = (*metric.Metrics)(nil)
