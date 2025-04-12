@@ -178,9 +178,6 @@ func Test_handler_indexHandler(t *testing.T) {
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)
 
 			if resp.StatusCode == http.StatusOK {
-				assert.Equal(t, "text/html", resp.Header.Get("Content-Type"),
-					"Expected Content-Type text/html, got %s", resp.Header.Get("Content-Type"))
-
 				for _, expectedText := range tt.expectedContains {
 					assert.True(t, strings.Contains(body, expectedText),
 						"Expected response to contain '%s', but it doesn't. Body: %s", expectedText, body)

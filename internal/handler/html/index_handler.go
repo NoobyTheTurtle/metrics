@@ -61,7 +61,6 @@ func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Counters: mapMetrics(h.storage.GetAllCounters()),
 	}
 
-	w.Header().Set("Content-Type", "text/html")
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

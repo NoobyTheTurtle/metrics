@@ -74,7 +74,7 @@ func TestLoggingMiddleware(t *testing.T) {
 			).Times(1)
 
 			baseHandler := http.HandlerFunc(tc.handlerFunc)
-			handler := LoggingMiddleware(mockLog)(baseHandler)
+			handler := LogMiddleware(mockLog)(baseHandler)
 
 			req, err := http.NewRequest(tc.method, tc.path, bytes.NewBuffer(tc.requestBody))
 			require.NoError(t, err)

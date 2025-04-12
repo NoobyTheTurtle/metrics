@@ -118,12 +118,6 @@ func Test_handler_valueHandler(t *testing.T) {
 			defer resp.Body.Close()
 
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "Expected status code %d, got %d", tt.expectedStatusCode, resp.StatusCode)
-
-			if resp.StatusCode == http.StatusOK {
-				assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"),
-					"Expected Content-Type text/plain; charset=utf-8, got %s", resp.Header.Get("Content-Type"))
-			}
-
 			assert.Equal(t, tt.expectedBody, body, "Expected response body '%s', got '%s'", tt.expectedBody, body)
 		})
 	}

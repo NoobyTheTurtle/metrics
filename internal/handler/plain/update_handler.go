@@ -28,8 +28,6 @@ func newUpdateCounterHandler(storage CounterSetter) *updateCounterHandler {
 }
 
 func (h *updateGaugeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
 
@@ -54,8 +52,6 @@ func (h *updateGaugeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *updateCounterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
 
