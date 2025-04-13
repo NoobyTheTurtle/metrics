@@ -73,6 +73,7 @@ func (m *Metrics) sendJSONMetric(metric model.Metrics) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Accept-Encoding", "gzip")
 
 	resp, err := m.client.Do(req)
