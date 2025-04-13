@@ -13,11 +13,16 @@ type ServerConfig struct {
 	AppEnv        string `env:"APP_ENV"`
 }
 
-func NewServerConfig() (*ServerConfig, error) {
+func NewServerConfig(configPath string) (*ServerConfig, error) {
+	defaultConfig, err := NewDefaultConfig(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("loading default config: %w", err)
+	}
+
 	config := &ServerConfig{
-		ServerAddress: DefaultServerAddress,
-		LogLevel:      DefaultLogLevel,
-		AppEnv:        DefaultAppEnv,
+		ServerAddress: defaultConfig.ServerAddress,
+		LogLevel:      defaultConfig.LogLevel,
+		AppEnv:        defaultConfig.AppEnv,
 	}
 
 	if err := config.parseFlags(); err != nil {

@@ -11,18 +11,25 @@ import (
 
 func TestNewServerConfig(t *testing.T) {
 	oldArgs := os.Args
-	oldEnv := os.Getenv("ADDRESS")
+	oldEnv := map[string]string{}
+	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV"} {
+		oldEnv[env] = os.Getenv(env)
+	}
 
 	defer func() {
 		os.Args = oldArgs
-		if oldEnv == "" {
-			os.Unsetenv("ADDRESS")
-		} else {
-			os.Setenv("ADDRESS", oldEnv)
+		for env, val := range oldEnv {
+			if val == "" {
+				os.Unsetenv(env)
+			} else {
+				os.Setenv(env, val)
+			}
 		}
 	}()
 
-	os.Unsetenv("ADDRESS")
+	for env := range oldEnv {
+		os.Unsetenv(env)
+	}
 
 	tests := []struct {
 		name           string
@@ -35,7 +42,9 @@ func TestNewServerConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &ServerConfig{
-				ServerAddress: DefaultServerAddress,
+				ServerAddress: "localhost:8080",
+				LogLevel:      "info",
+				AppEnv:        "development",
 			},
 		},
 		{
@@ -43,26 +52,36 @@ func TestNewServerConfig(t *testing.T) {
 			args: []string{"test", "-a", "localhost:9090"},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:9090",
+				LogLevel:      "info",
+				AppEnv:        "development",
 			},
 		},
 		{
 			name: "environment variables",
 			args: []string{"test"},
 			envs: map[string]string{
-				"ADDRESS": "localhost:7070",
+				"ADDRESS":   "localhost:7070",
+				"LOG_LEVEL": "debug",
+				"APP_ENV":   "test",
 			},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:7070",
+				LogLevel:      "debug",
+				AppEnv:        "test",
 			},
 		},
 		{
 			name: "environment variables override flags",
 			args: []string{"test", "-a", "localhost:9090"},
 			envs: map[string]string{
-				"ADDRESS": "localhost:7070",
+				"ADDRESS":   "localhost:7070",
+				"LOG_LEVEL": "debug",
+				"APP_ENV":   "test",
 			},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:7070",
+				LogLevel:      "debug",
+				AppEnv:        "test",
 			},
 		},
 		{
@@ -86,7 +105,7 @@ func TestNewServerConfig(t *testing.T) {
 				}
 			}()
 
-			config, err := NewServerConfig()
+			config, err := NewServerConfig("../../configs/default.yml")
 
 			if tt.expectedErrMsg != "" {
 				assert.Error(t, err)
@@ -94,6 +113,8 @@ func TestNewServerConfig(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected.ServerAddress, config.ServerAddress)
+				assert.Equal(t, tt.expected.LogLevel, config.LogLevel)
+				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)
 			}
 		})
 	}

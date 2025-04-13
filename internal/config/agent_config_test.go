@@ -12,7 +12,7 @@ import (
 func TestNewAgentConfig(t *testing.T) {
 	oldArgs := os.Args
 	oldEnv := map[string]string{}
-	for _, env := range []string{"ADDRESS", "POLL_INTERVAL", "REPORT_INTERVAL"} {
+	for _, env := range []string{"ADDRESS", "POLL_INTERVAL", "REPORT_INTERVAL", "LOG_LEVEL", "APP_ENV"} {
 		oldEnv[env] = os.Getenv(env)
 	}
 
@@ -42,9 +42,11 @@ func TestNewAgentConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &AgentConfig{
-				ServerAddress:  DefaultServerAddress,
-				PollInterval:   DefaultPollInterval,
-				ReportInterval: DefaultReportInterval,
+				ServerAddress:  "localhost:8080",
+				PollInterval:   2,
+				ReportInterval: 10,
+				LogLevel:       "info",
+				AppEnv:         "development",
 			},
 		},
 		{
@@ -54,6 +56,8 @@ func TestNewAgentConfig(t *testing.T) {
 				ServerAddress:  "localhost:9090",
 				PollInterval:   5,
 				ReportInterval: 20,
+				LogLevel:       "info",
+				AppEnv:         "development",
 			},
 		},
 		{
@@ -63,11 +67,15 @@ func TestNewAgentConfig(t *testing.T) {
 				"ADDRESS":         "localhost:7070",
 				"POLL_INTERVAL":   "3",
 				"REPORT_INTERVAL": "15",
+				"LOG_LEVEL":       "debug",
+				"APP_ENV":         "test",
 			},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:7070",
 				PollInterval:   3,
 				ReportInterval: 15,
+				LogLevel:       "debug",
+				AppEnv:         "test",
 			},
 		},
 		{
@@ -77,11 +85,15 @@ func TestNewAgentConfig(t *testing.T) {
 				"ADDRESS":         "localhost:7070",
 				"POLL_INTERVAL":   "3",
 				"REPORT_INTERVAL": "15",
+				"LOG_LEVEL":       "debug",
+				"APP_ENV":         "test",
 			},
 			expected: &AgentConfig{
 				ServerAddress:  "localhost:7070",
 				PollInterval:   3,
 				ReportInterval: 15,
+				LogLevel:       "debug",
+				AppEnv:         "test",
 			},
 		},
 		{
@@ -121,7 +133,7 @@ func TestNewAgentConfig(t *testing.T) {
 				}
 			}()
 
-			config, err := NewAgentConfig()
+			config, err := NewAgentConfig("../../configs/default.yml")
 
 			if tt.expectedErrMsg != "" {
 				assert.Error(t, err)
@@ -131,6 +143,8 @@ func TestNewAgentConfig(t *testing.T) {
 				assert.Equal(t, tt.expected.ServerAddress, config.ServerAddress)
 				assert.Equal(t, tt.expected.PollInterval, config.PollInterval)
 				assert.Equal(t, tt.expected.ReportInterval, config.ReportInterval)
+				assert.Equal(t, tt.expected.LogLevel, config.LogLevel)
+				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)
 			}
 		})
 	}

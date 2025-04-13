@@ -9,12 +9,12 @@ import (
 )
 
 func StartAgent() error {
-	c, err := config.NewAgentConfig()
+	c, err := config.NewAgentConfig("configs/default.yml")
 	if err != nil {
 		return err
 	}
 
-	isDev := c.AppEnv == config.DefaultAppEnv
+	isDev := c.AppEnv == "development"
 
 	l, err := logger.NewZapLogger(c.LogLevel, isDev)
 	if err != nil {

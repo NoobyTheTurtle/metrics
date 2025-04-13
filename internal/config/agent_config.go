@@ -15,13 +15,18 @@ type AgentConfig struct {
 	AppEnv         string `env:"APP_ENV"`
 }
 
-func NewAgentConfig() (*AgentConfig, error) {
+func NewAgentConfig(configPath string) (*AgentConfig, error) {
+	defaultConfig, err := NewDefaultConfig(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("loading default config: %w", err)
+	}
+
 	config := &AgentConfig{
-		PollInterval:   DefaultPollInterval,
-		ReportInterval: DefaultReportInterval,
-		ServerAddress:  DefaultServerAddress,
-		LogLevel:       DefaultLogLevel,
-		AppEnv:         DefaultAppEnv,
+		PollInterval:   defaultConfig.PollInterval,
+		ReportInterval: defaultConfig.ReportInterval,
+		ServerAddress:  defaultConfig.ServerAddress,
+		LogLevel:       defaultConfig.LogLevel,
+		AppEnv:         defaultConfig.AppEnv,
 	}
 
 	if err := config.parseFlags(); err != nil {

@@ -1,0 +1,5 @@
+poll_interval: 2
+report_interval: 10
+server_address: "localhost:8080"
+log_level: "info"
+app_env: "development"
