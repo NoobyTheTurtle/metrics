@@ -1,6 +1,8 @@
 package metric
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -80,10 +82,17 @@ func TestMetrics_SendMetrics(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+				assert.Equal(t, "gzip", r.Header.Get("Accept-Encoding"))
 				assert.Equal(t, http.MethodPost, r.Method)
 				assert.Equal(t, "/update/", r.URL.Path)
 
-				body, err := io.ReadAll(r.Body)
+				var body []byte
+				var err error
+
+				reader, err := gzip.NewReader(r.Body)
+				require.NoError(t, err)
+
+				body, err = io.ReadAll(reader)
 				require.NoError(t, err)
 				defer r.Body.Close()
 
@@ -186,10 +195,14 @@ func TestSendJSONMetric(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+				assert.Equal(t, "gzip", r.Header.Get("Accept-Encoding"))
 				assert.Equal(t, http.MethodPost, r.Method)
 				assert.Equal(t, "/update/", r.URL.Path)
 
-				body, err := io.ReadAll(r.Body)
+				reader, err := gzip.NewReader(r.Body)
+				assert.NoError(t, err)
+
+				body, err := io.ReadAll(reader)
 				assert.NoError(t, err)
 				defer r.Body.Close()
 
@@ -231,6 +244,39 @@ func TestSendJSONMetric(t *testing.T) {
 			}
 
 			metrics.sendJSONMetric(tt.metric)
+		})
+	}
+}
+
+func TestCompressJSON(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []byte
+	}{
+		{
+			name:  "compress valid JSON",
+			input: []byte(`{"id":"test","type":"gauge","value":123.45}`),
+		},
+		{
+			name:  "compress empty JSON",
+			input: []byte(`{}`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			compressed, err := compressJSON(tt.input)
+
+			assert.NoError(t, err)
+			assert.NotNil(t, compressed)
+
+			reader, err := gzip.NewReader(bytes.NewReader(compressed))
+			require.NoError(t, err)
+
+			decompressed, err := io.ReadAll(reader)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.input, decompressed)
 		})
 	}
 }
