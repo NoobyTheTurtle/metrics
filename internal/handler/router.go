@@ -44,6 +44,7 @@ func (r *Router) setupRoutes() {
 	// HTML handlers
 	r.router.Group(func(router chi.Router) {
 		router.Use(middleware.ContentTypeMiddleware(html.ContentTypeValue))
+		router.Use(middleware.GzipMiddleware)
 		router.Get("/", r.htmlHandler.IndexHandler())
 	})
 
@@ -57,6 +58,7 @@ func (r *Router) setupRoutes() {
 	// JSON handlers
 	r.router.Group(func(router chi.Router) {
 		router.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
+		router.Use(middleware.GzipMiddleware)
 		router.Post("/update/", r.jsonHandler.UpdateHandler())
 		router.Post("/value/", r.jsonHandler.ValueHandler())
 	})
