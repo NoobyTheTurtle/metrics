@@ -11,7 +11,7 @@ store_interval: 300
 file_storage_path: "tmp/metrics-db.json"
 
 # Restore metrics from file storage
-restore: true
+restore: false
 
 # Server address
 server_address: "localhost:8080"

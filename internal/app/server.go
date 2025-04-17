@@ -36,7 +36,7 @@ func StartServer() error {
 
 	if c.StoreInterval > 0 {
 		persister := persister.NewPersister(store, l, c.StoreInterval)
-		persister.Run()
+		go persister.Run()
 	}
 
 	router := handler.NewRouter(store, l)
