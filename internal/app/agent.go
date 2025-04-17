@@ -1,6 +1,8 @@
 package app
 
 import (
+	"sync"
+
 	"github.com/NoobyTheTurtle/metrics/internal/collector"
 	"github.com/NoobyTheTurtle/metrics/internal/config"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
@@ -27,10 +29,20 @@ func StartAgent() error {
 	metricCollector := collector.NewCollector(metrics, l, c.PollInterval)
 	metricReporter := reporter.NewReporter(metrics, l, c.ReportInterval)
 
-	go metricCollector.Run()
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	go metricReporter.Run()
+	go func() {
+		defer wg.Done()
+		metricCollector.Run()
+	}()
+
+	go func() {
+		defer wg.Done()
+		metricReporter.Run()
+	}()
 
 	l.Info("Starting agent...")
-	select {}
+	wg.Wait()
+	return nil
 }
