@@ -11,9 +11,17 @@ func (ms *MemStorage) GetGauge(name string) (float64, bool) {
 
 func (ms *MemStorage) UpdateGauge(name string, value float64) (float64, error) {
 	ms.mu.Lock()
-	defer ms.mu.Unlock()
 	ms.gauges[name] = value
-	return ms.gauges[name], nil
+	result := ms.gauges[name]
+	ms.mu.Unlock()
+
+	if ms.fileStoragePath != "" && ms.syncMode {
+		if err := ms.SaveToFile(); err != nil {
+			return result, err
+		}
+	}
+
+	return result, nil
 }
 
 func (ms *MemStorage) GetAllGauges() map[string]float64 {

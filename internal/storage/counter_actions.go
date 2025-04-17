@@ -11,9 +11,17 @@ func (ms *MemStorage) GetCounter(name string) (int64, bool) {
 
 func (ms *MemStorage) UpdateCounter(name string, value int64) (int64, error) {
 	ms.mu.Lock()
-	defer ms.mu.Unlock()
 	ms.counters[name] += value
-	return ms.counters[name], nil
+	result := ms.counters[name]
+	ms.mu.Unlock()
+
+	if ms.fileStoragePath != "" && ms.syncMode {
+		if err := ms.SaveToFile(); err != nil {
+			return result, err
+		}
+	}
+
+	return result, nil
 }
 
 func (ms *MemStorage) GetAllCounters() map[string]int64 {

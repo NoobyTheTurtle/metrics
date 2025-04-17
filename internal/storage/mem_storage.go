@@ -1,16 +1,22 @@
 package storage
 
-import "sync"
+import (
+	"sync"
+)
 
 type MemStorage struct {
-	mu       sync.RWMutex
-	gauges   map[string]float64
-	counters map[string]int64
+	mu              sync.RWMutex
+	gauges          map[string]float64
+	counters        map[string]int64
+	fileStoragePath string
+	syncMode        bool
 }
 
-func NewMemStorage() *MemStorage {
+func NewMemStorage(fileStoragePath string, syncMode bool) *MemStorage {
 	return &MemStorage{
-		gauges:   make(map[string]float64),
-		counters: make(map[string]int64),
+		gauges:          make(map[string]float64),
+		counters:        make(map[string]int64),
+		fileStoragePath: fileStoragePath,
+		syncMode:        syncMode,
 	}
 }
