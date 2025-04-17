@@ -1,7 +1,9 @@
 package storage
 
-// TODO: fix race condition
+import "sync"
+
 type MemStorage struct {
+	mu       sync.RWMutex
 	gauges   map[string]float64
 	counters map[string]int64
 }

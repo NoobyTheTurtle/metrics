@@ -8,11 +8,16 @@ import (
 )
 
 type DefaultConfig struct {
-	PollInterval   uint   `yaml:"poll_interval"`
-	ReportInterval uint   `yaml:"report_interval"`
-	ServerAddress  string `yaml:"server_address"`
-	LogLevel       string `yaml:"log_level"`
-	AppEnv         string `yaml:"app_env"`
+	ServerAddress string `yaml:"server_address"`
+	LogLevel      string `yaml:"log_level"`
+	AppEnv        string `yaml:"app_env"`
+
+	PollInterval   uint `yaml:"poll_interval"`
+	ReportInterval uint `yaml:"report_interval"`
+
+	StoreInterval   uint   `yaml:"store_interval"`
+	FileStoragePath string `yaml:"file_storage_path"`
+	Restore         bool   `yaml:"restore"`
 }
 
 func NewDefaultConfig(configPath string) (*DefaultConfig, error) {
