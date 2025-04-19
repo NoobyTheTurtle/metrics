@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -12,27 +11,22 @@ func (ms *MetricStorage) GetGauge(name string) (float64, bool) {
 		return 0, false
 	}
 
-	switch v := value.(type) {
-	case float64:
-		return v, true
-	case json.Number:
-		f, err := v.Float64()
-		if err != nil {
-			return 0, false
-		}
-		return f, true
-	default:
-		return 0, false
-	}
+	return convertToFloat64(value)
 }
 
 func (ms *MetricStorage) UpdateGauge(name string, value float64) (float64, error) {
 	key := addPrefix(name, GaugePrefix)
-	_, err := ms.storage.Set(key, value)
+	newValue, err := ms.storage.Set(key, value)
 	if err != nil {
 		return 0, fmt.Errorf("failed to update gauge metric %s: %w", name, err)
 	}
-	return value, nil
+
+	newValueFloat64, ok := convertToFloat64(newValue)
+	if !ok {
+		return 0, fmt.Errorf("failed to convert newValue to float64: %v", newValue)
+	}
+
+	return newValueFloat64, nil
 }
 
 func (ms *MetricStorage) GetAllGauges() map[string]float64 {
@@ -41,7 +35,7 @@ func (ms *MetricStorage) GetAllGauges() map[string]float64 {
 
 	for key, value := range allMetrics {
 		if hasPrefix(key, GaugePrefix) {
-			if gaugeValue, ok := value.(float64); ok {
+			if gaugeValue, ok := convertToFloat64(value); ok {
 				metricName := trimPrefix(key, GaugePrefix)
 				gauges[metricName] = gaugeValue
 			}
@@ -58,18 +52,7 @@ func (ms *MetricStorage) GetCounter(name string) (int64, bool) {
 		return 0, false
 	}
 
-	switch v := value.(type) {
-	case int64:
-		return v, true
-	case json.Number:
-		i, err := v.Int64()
-		if err != nil {
-			return 0, false
-		}
-		return i, true
-	default:
-		return 0, false
-	}
+	return convertToInt64(value)
 }
 
 func (ms *MetricStorage) UpdateCounter(name string, value int64) (int64, error) {
@@ -80,12 +63,17 @@ func (ms *MetricStorage) UpdateCounter(name string, value int64) (int64, error) 
 		value += currentValue
 	}
 
-	_, err := ms.storage.Set(key, value)
+	newValue, err := ms.storage.Set(key, value)
 	if err != nil {
 		return 0, fmt.Errorf("failed to update counter metric %s: %w", name, err)
 	}
 
-	return value, nil
+	newValueInt64, ok := convertToInt64(newValue)
+	if !ok {
+		return 0, fmt.Errorf("failed to convert newValue to int64: %v", newValue)
+	}
+
+	return newValueInt64, nil
 }
 
 func (ms *MetricStorage) GetAllCounters() map[string]int64 {
@@ -94,7 +82,7 @@ func (ms *MetricStorage) GetAllCounters() map[string]int64 {
 
 	for key, value := range allMetrics {
 		if hasPrefix(key, CounterPrefix) {
-			if counterValue, ok := value.(int64); ok {
+			if counterValue, ok := convertToInt64(value); ok {
 				metricName := trimPrefix(key, CounterPrefix)
 				counters[metricName] = counterValue
 			}
