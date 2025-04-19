@@ -7,20 +7,23 @@ import (
 	"path/filepath"
 )
 
-// TODO: Add mutex for file operations
-
 func (fs *FileStorage) Get(key string) (any, bool) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
 	return fs.memStorage.Get(key)
 }
 
 func (fs *FileStorage) Set(key string, value any) (any, error) {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
 	result, err := fs.memStorage.Set(key, value)
 	if err != nil {
 		return nil, err
 	}
 
 	if fs.syncMode && fs.filePath != "" {
-		if err := fs.SaveToFile(); err != nil {
+		if err := fs.saveToFileInternal(); err != nil {
 			return nil, fmt.Errorf("failed to save to file: %w", err)
 		}
 	}
@@ -29,10 +32,19 @@ func (fs *FileStorage) Set(key string, value any) (any, error) {
 }
 
 func (fs *FileStorage) GetAll() map[string]any {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
 	return fs.memStorage.GetAll()
 }
 
 func (fs *FileStorage) SaveToFile() error {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
+	return fs.saveToFileInternal()
+}
+
+func (fs *FileStorage) saveToFileInternal() error {
 	if fs.filePath == "" {
 		return nil
 	}
@@ -56,6 +68,9 @@ func (fs *FileStorage) SaveToFile() error {
 }
 
 func (fs *FileStorage) LoadFromFile() error {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
 	if fs.filePath == "" {
 		return nil
 	}
