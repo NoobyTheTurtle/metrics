@@ -13,7 +13,7 @@ func (ms *MemoryStorage) Set(key string, value any) (any, error) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 	ms.data[key] = value
-	return value, nil
+	return ms.data[key], nil
 }
 
 func (ms *MemoryStorage) GetAll() map[string]any {
