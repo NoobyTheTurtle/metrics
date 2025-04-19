@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -14,6 +15,12 @@ func (ms *MetricStorage) GetGauge(name string) (float64, bool) {
 	switch v := value.(type) {
 	case float64:
 		return v, true
+	case json.Number:
+		f, err := v.Float64()
+		if err != nil {
+			return 0, false
+		}
+		return f, true
 	default:
 		return 0, false
 	}
@@ -54,6 +61,12 @@ func (ms *MetricStorage) GetCounter(name string) (int64, bool) {
 	switch v := value.(type) {
 	case int64:
 		return v, true
+	case json.Number:
+		i, err := v.Int64()
+		if err != nil {
+			return 0, false
+		}
+		return i, true
 	default:
 		return 0, false
 	}
