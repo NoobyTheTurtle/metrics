@@ -2,7 +2,7 @@ package persister
 
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
-	"github.com/NoobyTheTurtle/metrics/internal/storage"
+	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
 type PersisterLogger interface {
@@ -15,4 +15,7 @@ type MetricsStorage interface {
 }
 
 var _ PersisterLogger = (*logger.ZapLogger)(nil)
-var _ MetricsStorage = (*storage.MemStorage)(nil)
+var _ PersisterLogger = (*MockPersisterLogger)(nil)
+
+var _ MetricsStorage = (*adapter.MetricStorage)(nil)
+var _ MetricsStorage = (*MockMetricsStorage)(nil)

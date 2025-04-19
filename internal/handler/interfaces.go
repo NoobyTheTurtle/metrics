@@ -5,7 +5,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/handler/json"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/plain"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
-	"github.com/NoobyTheTurtle/metrics/internal/storage"
+	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
 type MetricStorage interface {
@@ -14,7 +14,7 @@ type MetricStorage interface {
 	plain.HandlerStorage
 }
 
-var _ MetricStorage = (*storage.MemStorage)(nil)
+var _ MetricStorage = (*adapter.MetricStorage)(nil)
 var _ MetricStorage = (*MockMetricStorage)(nil)
 
 type RouterLogger interface {

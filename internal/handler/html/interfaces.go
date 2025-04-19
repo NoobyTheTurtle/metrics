@@ -1,7 +1,7 @@
 package html
 
 import (
-	"github.com/NoobyTheTurtle/metrics/internal/storage"
+	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
 type GaugesGetter interface {
@@ -17,5 +17,5 @@ type HandlerStorage interface {
 	CountersGetter
 }
 
-var _ HandlerStorage = (*storage.MemStorage)(nil)
+var _ HandlerStorage = (*adapter.MetricStorage)(nil)
 var _ HandlerStorage = (*MockHandlerStorage)(nil)
