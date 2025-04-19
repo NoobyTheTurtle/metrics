@@ -32,7 +32,7 @@ func NewMetricStorage(storageType StorageType, filePath string, syncMode bool, r
 	case FileStorage:
 		fileStorage := CreateFileStorage(memStorage, filePath, syncMode)
 
-		metricStorage = adapter.NewMetricStorage(memStorage, fileStorage)
+		metricStorage = adapter.NewMetricStorage(fileStorage, fileStorage)
 
 		if restore {
 			if err := metricStorage.LoadFromFile(); err != nil {
