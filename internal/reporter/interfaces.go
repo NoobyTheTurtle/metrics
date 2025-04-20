@@ -2,16 +2,16 @@ package reporter
 
 import (
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
-	"github.com/NoobyTheTurtle/metrics/internal/metrics"
+	"github.com/NoobyTheTurtle/metrics/internal/metric"
 )
 
-type reporterLogger interface {
+type ReporterLogger interface {
 	Info(format string, args ...any)
 }
 
-type metricsReporter interface {
+type MetricsReporter interface {
 	SendMetrics()
 }
 
-var _ reporterLogger = (*logger.StdLogger)(nil)
-var _ metricsReporter = (*metrics.Metrics)(nil)
+var _ ReporterLogger = (*logger.ZapLogger)(nil)
+var _ MetricsReporter = (*metric.Metrics)(nil)

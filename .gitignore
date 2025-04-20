@@ -20,6 +20,9 @@ cmd/server/server
 # Dependency directories (remove the comment below to include it)
 vendor/
 
+# Temporary files
+tmp/
+
 # IDEs directories
 .idea
 .vscode
