@@ -108,8 +108,8 @@ func TestRouter_Routes(t *testing.T) {
 				mockDBPinger := NewMockDBPinger(ctrl)
 
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
-				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
-				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
+				mockStorage.EXPECT().GetAllGauges(gomock.Any()).Return(map[string]float64{}, nil)
+				mockStorage.EXPECT().GetAllCounters(gomock.Any()).Return(map[string]int64{}, nil)
 
 				return mockStorage, mockLogger, mockDBPinger
 			},
@@ -126,7 +126,7 @@ func TestRouter_Routes(t *testing.T) {
 				mockDBPinger := NewMockDBPinger(ctrl)
 
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
-				mockStorage.EXPECT().GetGauge("test").Return(float64(10.5), true)
+				mockStorage.EXPECT().GetGauge(gomock.Any(), "test").Return(float64(10.5), true)
 
 				return mockStorage, mockLogger, mockDBPinger
 			},
@@ -143,7 +143,7 @@ func TestRouter_Routes(t *testing.T) {
 				mockDBPinger := NewMockDBPinger(ctrl)
 
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
-				mockStorage.EXPECT().UpdateGauge("test", float64(15.5)).Return(float64(15.5), nil)
+				mockStorage.EXPECT().UpdateGauge(gomock.Any(), "test", float64(15.5)).Return(float64(15.5), nil)
 
 				return mockStorage, mockLogger, mockDBPinger
 			},
@@ -161,7 +161,7 @@ func TestRouter_Routes(t *testing.T) {
 				mockDBPinger := NewMockDBPinger(ctrl)
 
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
-				mockStorage.EXPECT().UpdateGauge("test", 12.3).Return(12.3, nil)
+				mockStorage.EXPECT().UpdateGauge(gomock.Any(), "test", 12.3).Return(12.3, nil)
 
 				return mockStorage, mockLogger, mockDBPinger
 			},
@@ -179,7 +179,7 @@ func TestRouter_Routes(t *testing.T) {
 				mockDBPinger := NewMockDBPinger(ctrl)
 
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
-				mockStorage.EXPECT().GetCounter("test").Return(int64(42), true)
+				mockStorage.EXPECT().GetCounter(gomock.Any(), "test").Return(int64(42), true)
 
 				return mockStorage, mockLogger, mockDBPinger
 			},

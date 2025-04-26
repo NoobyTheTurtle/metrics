@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -50,12 +51,13 @@ func TestMetricStorage_SaveToFile(t *testing.T) {
 			if tt.fileSaverExists {
 				mockFileSaver = NewMockFileSaver(ctrl)
 				mockFileSaver.EXPECT().
-					SaveToFile().
+					SaveToFile(gomock.Any()).
 					Return(tt.mockError)
 				ms.fileSaver = mockFileSaver
 			}
 
-			err := ms.SaveToFile()
+			ctx := context.Background()
+			err := ms.SaveToFile(ctx)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -109,12 +111,13 @@ func TestMetricStorage_LoadFromFile(t *testing.T) {
 			if tt.fileSaverExists {
 				mockFileSaver = NewMockFileSaver(ctrl)
 				mockFileSaver.EXPECT().
-					LoadFromFile().
+					LoadFromFile(gomock.Any()).
 					Return(tt.mockError)
 				ms.fileSaver = mockFileSaver
 			}
 
-			err := ms.LoadFromFile()
+			ctx := context.Background()
+			err := ms.LoadFromFile(ctx)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

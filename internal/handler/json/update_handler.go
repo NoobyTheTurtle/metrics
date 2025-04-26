@@ -49,7 +49,7 @@ func (h *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		value, err := h.storage.UpdateGauge(metric.ID, *metric.Value)
+		value, err := h.storage.UpdateGauge(r.Context(), metric.ID, *metric.Value)
 		if err != nil {
 			http.Error(w, "Failed to update gauge", http.StatusInternalServerError)
 			return
@@ -62,7 +62,7 @@ func (h *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		value, err := h.storage.UpdateCounter(metric.ID, *metric.Delta)
+		value, err := h.storage.UpdateCounter(r.Context(), metric.ID, *metric.Delta)
 		if err != nil {
 			http.Error(w, "Failed to update counter", http.StatusInternalServerError)
 			return

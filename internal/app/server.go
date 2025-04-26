@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -22,11 +23,11 @@ func StartServer(ctx context.Context) error {
 
 	isDev := c.AppEnv == "development"
 
-	l, err := logger.NewZapLogger(c.LogLevel, isDev)
+	log, err := logger.NewZapLogger(c.LogLevel, isDev)
 	if err != nil {
 		return err
 	}
-	defer l.Sync()
+	defer log.Sync()
 
 	dbClient, err := postgres.NewClient(ctx, c.DatabaseDSN)
 	if err != nil {
@@ -34,34 +35,45 @@ func StartServer(ctx context.Context) error {
 	}
 	defer dbClient.Close()
 
-	metricStorage, err := getMetricStorage(c)
+	metricStorage, err := initMetricStorage(ctx, c, dbClient.DB, log)
 	if err != nil {
 		return fmt.Errorf("failed to create metric storage: %w", err)
 	}
 
-	if c.StoreInterval > 0 && c.FileStoragePath != "" {
-		p := persister.NewPersister(metricStorage, l, c.StoreInterval)
-		go p.Run()
-	}
+	router := handler.NewRouter(metricStorage, log, dbClient)
 
-	router := handler.NewRouter(metricStorage, l, dbClient)
-
-	l.Info("Starting server on %s", c.ServerAddress)
+	log.Info("Starting server on %s", c.ServerAddress)
 	return http.ListenAndServe(c.ServerAddress, router.Handler())
 }
 
-func getMetricStorage(c *config.ServerConfig) (*adapter.MetricStorage, error) {
+func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sql.DB, log *logger.ZapLogger) (*adapter.MetricStorage, error) {
 	var storageType storage.StorageType
-	if c.FileStoragePath != "" {
+
+	if c.DatabaseDSN != "" && db != nil {
+		storageType = storage.PostgresStorage
+	} else if c.FileStoragePath != "" {
 		storageType = storage.FileStorage
 	} else {
 		storageType = storage.MemoryStorage
 	}
 
-	return storage.NewMetricStorage(
+	metricStorage, err := storage.NewMetricStorage(
+		ctx,
 		storageType,
 		c.FileStoragePath,
 		c.StoreInterval == 0,
 		c.Restore,
+		db,
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if c.StoreInterval > 0 && storageType == storage.FileStorage {
+		p := persister.NewPersister(metricStorage, log, c.StoreInterval)
+		go p.Run(ctx)
+	}
+
+	return metricStorage, nil
 }

@@ -10,6 +10,7 @@
 package persister
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -98,15 +99,15 @@ func (m *MockMetricsStorage) EXPECT() *MockMetricsStorageMockRecorder {
 }
 
 // SaveToFile mocks base method.
-func (m *MockMetricsStorage) SaveToFile() error {
+func (m *MockMetricsStorage) SaveToFile(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveToFile")
+	ret := m.ctrl.Call(m, "SaveToFile", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveToFile indicates an expected call of SaveToFile.
-func (mr *MockMetricsStorageMockRecorder) SaveToFile() *gomock.Call {
+func (mr *MockMetricsStorageMockRecorder) SaveToFile(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveToFile", reflect.TypeOf((*MockMetricsStorage)(nil).SaveToFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveToFile", reflect.TypeOf((*MockMetricsStorage)(nil).SaveToFile), ctx)
 }

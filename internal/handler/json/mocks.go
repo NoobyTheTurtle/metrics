@@ -10,6 +10,7 @@
 package json
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -40,18 +41,18 @@ func (m *MockGaugeGetter) EXPECT() *MockGaugeGetterMockRecorder {
 }
 
 // GetGauge mocks base method.
-func (m *MockGaugeGetter) GetGauge(name string) (float64, bool) {
+func (m *MockGaugeGetter) GetGauge(ctx context.Context, name string) (float64, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGauge", name)
+	ret := m.ctrl.Call(m, "GetGauge", ctx, name)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetGauge indicates an expected call of GetGauge.
-func (mr *MockGaugeGetterMockRecorder) GetGauge(name any) *gomock.Call {
+func (mr *MockGaugeGetterMockRecorder) GetGauge(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGauge", reflect.TypeOf((*MockGaugeGetter)(nil).GetGauge), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGauge", reflect.TypeOf((*MockGaugeGetter)(nil).GetGauge), ctx, name)
 }
 
 // MockGaugeSetter is a mock of GaugeSetter interface.
@@ -79,18 +80,18 @@ func (m *MockGaugeSetter) EXPECT() *MockGaugeSetterMockRecorder {
 }
 
 // UpdateGauge mocks base method.
-func (m *MockGaugeSetter) UpdateGauge(name string, value float64) (float64, error) {
+func (m *MockGaugeSetter) UpdateGauge(ctx context.Context, name string, value float64) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGauge", name, value)
+	ret := m.ctrl.Call(m, "UpdateGauge", ctx, name, value)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateGauge indicates an expected call of UpdateGauge.
-func (mr *MockGaugeSetterMockRecorder) UpdateGauge(name, value any) *gomock.Call {
+func (mr *MockGaugeSetterMockRecorder) UpdateGauge(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockGaugeSetter)(nil).UpdateGauge), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockGaugeSetter)(nil).UpdateGauge), ctx, name, value)
 }
 
 // MockCounterGetter is a mock of CounterGetter interface.
@@ -118,18 +119,18 @@ func (m *MockCounterGetter) EXPECT() *MockCounterGetterMockRecorder {
 }
 
 // GetCounter mocks base method.
-func (m *MockCounterGetter) GetCounter(name string) (int64, bool) {
+func (m *MockCounterGetter) GetCounter(ctx context.Context, name string) (int64, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCounter", name)
+	ret := m.ctrl.Call(m, "GetCounter", ctx, name)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetCounter indicates an expected call of GetCounter.
-func (mr *MockCounterGetterMockRecorder) GetCounter(name any) *gomock.Call {
+func (mr *MockCounterGetterMockRecorder) GetCounter(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockCounterGetter)(nil).GetCounter), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockCounterGetter)(nil).GetCounter), ctx, name)
 }
 
 // MockCounterSetter is a mock of CounterSetter interface.
@@ -157,18 +158,18 @@ func (m *MockCounterSetter) EXPECT() *MockCounterSetterMockRecorder {
 }
 
 // UpdateCounter mocks base method.
-func (m *MockCounterSetter) UpdateCounter(name string, value int64) (int64, error) {
+func (m *MockCounterSetter) UpdateCounter(ctx context.Context, name string, value int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateCounter", name, value)
+	ret := m.ctrl.Call(m, "UpdateCounter", ctx, name, value)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateCounter indicates an expected call of UpdateCounter.
-func (mr *MockCounterSetterMockRecorder) UpdateCounter(name, value any) *gomock.Call {
+func (mr *MockCounterSetterMockRecorder) UpdateCounter(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockCounterSetter)(nil).UpdateCounter), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockCounterSetter)(nil).UpdateCounter), ctx, name, value)
 }
 
 // MockGaugeStorage is a mock of GaugeStorage interface.
@@ -196,33 +197,33 @@ func (m *MockGaugeStorage) EXPECT() *MockGaugeStorageMockRecorder {
 }
 
 // GetGauge mocks base method.
-func (m *MockGaugeStorage) GetGauge(name string) (float64, bool) {
+func (m *MockGaugeStorage) GetGauge(ctx context.Context, name string) (float64, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGauge", name)
+	ret := m.ctrl.Call(m, "GetGauge", ctx, name)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetGauge indicates an expected call of GetGauge.
-func (mr *MockGaugeStorageMockRecorder) GetGauge(name any) *gomock.Call {
+func (mr *MockGaugeStorageMockRecorder) GetGauge(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGauge", reflect.TypeOf((*MockGaugeStorage)(nil).GetGauge), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGauge", reflect.TypeOf((*MockGaugeStorage)(nil).GetGauge), ctx, name)
 }
 
 // UpdateGauge mocks base method.
-func (m *MockGaugeStorage) UpdateGauge(name string, value float64) (float64, error) {
+func (m *MockGaugeStorage) UpdateGauge(ctx context.Context, name string, value float64) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGauge", name, value)
+	ret := m.ctrl.Call(m, "UpdateGauge", ctx, name, value)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateGauge indicates an expected call of UpdateGauge.
-func (mr *MockGaugeStorageMockRecorder) UpdateGauge(name, value any) *gomock.Call {
+func (mr *MockGaugeStorageMockRecorder) UpdateGauge(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockGaugeStorage)(nil).UpdateGauge), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockGaugeStorage)(nil).UpdateGauge), ctx, name, value)
 }
 
 // MockCounterStorage is a mock of CounterStorage interface.
@@ -250,33 +251,33 @@ func (m *MockCounterStorage) EXPECT() *MockCounterStorageMockRecorder {
 }
 
 // GetCounter mocks base method.
-func (m *MockCounterStorage) GetCounter(name string) (int64, bool) {
+func (m *MockCounterStorage) GetCounter(ctx context.Context, name string) (int64, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCounter", name)
+	ret := m.ctrl.Call(m, "GetCounter", ctx, name)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetCounter indicates an expected call of GetCounter.
-func (mr *MockCounterStorageMockRecorder) GetCounter(name any) *gomock.Call {
+func (mr *MockCounterStorageMockRecorder) GetCounter(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockCounterStorage)(nil).GetCounter), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockCounterStorage)(nil).GetCounter), ctx, name)
 }
 
 // UpdateCounter mocks base method.
-func (m *MockCounterStorage) UpdateCounter(name string, value int64) (int64, error) {
+func (m *MockCounterStorage) UpdateCounter(ctx context.Context, name string, value int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateCounter", name, value)
+	ret := m.ctrl.Call(m, "UpdateCounter", ctx, name, value)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateCounter indicates an expected call of UpdateCounter.
-func (mr *MockCounterStorageMockRecorder) UpdateCounter(name, value any) *gomock.Call {
+func (mr *MockCounterStorageMockRecorder) UpdateCounter(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockCounterStorage)(nil).UpdateCounter), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockCounterStorage)(nil).UpdateCounter), ctx, name, value)
 }
 
 // MockHandlerStorage is a mock of HandlerStorage interface.
@@ -304,61 +305,61 @@ func (m *MockHandlerStorage) EXPECT() *MockHandlerStorageMockRecorder {
 }
 
 // GetCounter mocks base method.
-func (m *MockHandlerStorage) GetCounter(name string) (int64, bool) {
+func (m *MockHandlerStorage) GetCounter(ctx context.Context, name string) (int64, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCounter", name)
+	ret := m.ctrl.Call(m, "GetCounter", ctx, name)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetCounter indicates an expected call of GetCounter.
-func (mr *MockHandlerStorageMockRecorder) GetCounter(name any) *gomock.Call {
+func (mr *MockHandlerStorageMockRecorder) GetCounter(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockHandlerStorage)(nil).GetCounter), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounter", reflect.TypeOf((*MockHandlerStorage)(nil).GetCounter), ctx, name)
 }
 
 // GetGauge mocks base method.
-func (m *MockHandlerStorage) GetGauge(name string) (float64, bool) {
+func (m *MockHandlerStorage) GetGauge(ctx context.Context, name string) (float64, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGauge", name)
+	ret := m.ctrl.Call(m, "GetGauge", ctx, name)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetGauge indicates an expected call of GetGauge.
-func (mr *MockHandlerStorageMockRecorder) GetGauge(name any) *gomock.Call {
+func (mr *MockHandlerStorageMockRecorder) GetGauge(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGauge", reflect.TypeOf((*MockHandlerStorage)(nil).GetGauge), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGauge", reflect.TypeOf((*MockHandlerStorage)(nil).GetGauge), ctx, name)
 }
 
 // UpdateCounter mocks base method.
-func (m *MockHandlerStorage) UpdateCounter(name string, value int64) (int64, error) {
+func (m *MockHandlerStorage) UpdateCounter(ctx context.Context, name string, value int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateCounter", name, value)
+	ret := m.ctrl.Call(m, "UpdateCounter", ctx, name, value)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateCounter indicates an expected call of UpdateCounter.
-func (mr *MockHandlerStorageMockRecorder) UpdateCounter(name, value any) *gomock.Call {
+func (mr *MockHandlerStorageMockRecorder) UpdateCounter(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockHandlerStorage)(nil).UpdateCounter), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockHandlerStorage)(nil).UpdateCounter), ctx, name, value)
 }
 
 // UpdateGauge mocks base method.
-func (m *MockHandlerStorage) UpdateGauge(name string, value float64) (float64, error) {
+func (m *MockHandlerStorage) UpdateGauge(ctx context.Context, name string, value float64) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGauge", name, value)
+	ret := m.ctrl.Call(m, "UpdateGauge", ctx, name, value)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateGauge indicates an expected call of UpdateGauge.
-func (mr *MockHandlerStorageMockRecorder) UpdateGauge(name, value any) *gomock.Call {
+func (mr *MockHandlerStorageMockRecorder) UpdateGauge(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockHandlerStorage)(nil).UpdateGauge), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockHandlerStorage)(nil).UpdateGauge), ctx, name, value)
 }

@@ -1,29 +1,30 @@
 package file
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
-func (fs *FileStorage) Get(key string) (any, bool) {
+func (fs *FileStorage) Get(ctx context.Context, key string) (any, bool) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
-	return fs.memStorage.Get(key)
+	return fs.memStorage.Get(ctx, key)
 }
 
-func (fs *FileStorage) Set(key string, value any) (any, error) {
+func (fs *FileStorage) Set(ctx context.Context, key string, value any) (any, error) {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
-	result, err := fs.memStorage.Set(key, value)
+	result, err := fs.memStorage.Set(ctx, key, value)
 	if err != nil {
 		return nil, err
 	}
 
 	if fs.syncMode && fs.filePath != "" {
-		if err := fs.saveToFileInternal(); err != nil {
+		if err := fs.saveToFileInternal(ctx); err != nil {
 			return nil, fmt.Errorf("failed to save to file: %w", err)
 		}
 	}
@@ -31,20 +32,20 @@ func (fs *FileStorage) Set(key string, value any) (any, error) {
 	return result, nil
 }
 
-func (fs *FileStorage) GetAll() map[string]any {
+func (fs *FileStorage) GetAll(ctx context.Context) (map[string]any, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
-	return fs.memStorage.GetAll()
+	return fs.memStorage.GetAll(ctx)
 }
 
-func (fs *FileStorage) SaveToFile() error {
+func (fs *FileStorage) SaveToFile(ctx context.Context) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
-	return fs.saveToFileInternal()
+	return fs.saveToFileInternal(ctx)
 }
 
-func (fs *FileStorage) saveToFileInternal() error {
+func (fs *FileStorage) saveToFileInternal(ctx context.Context) error {
 	if fs.filePath == "" {
 		return nil
 	}
@@ -54,7 +55,11 @@ func (fs *FileStorage) saveToFileInternal() error {
 		return fmt.Errorf("failed to create directory for file storage: %w", err)
 	}
 
-	data := fs.memStorage.GetAll()
+	data, err := fs.memStorage.GetAll(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get all data: %w", err)
+	}
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
@@ -67,7 +72,7 @@ func (fs *FileStorage) saveToFileInternal() error {
 	return nil
 }
 
-func (fs *FileStorage) LoadFromFile() error {
+func (fs *FileStorage) LoadFromFile(ctx context.Context) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
@@ -89,7 +94,7 @@ func (fs *FileStorage) LoadFromFile() error {
 	}
 
 	for key, value := range fileData {
-		_, err := fs.memStorage.Set(key, value)
+		_, err := fs.memStorage.Set(ctx, key, value)
 		if err != nil {
 			return fmt.Errorf("failed to set value for key %s: %w", key, err)
 		}

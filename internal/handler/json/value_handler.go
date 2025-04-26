@@ -44,7 +44,7 @@ func (h *valueHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch metric.MType {
 	case GaugeType:
-		value, exists := h.storage.GetGauge(metric.ID)
+		value, exists := h.storage.GetGauge(r.Context(), metric.ID)
 		if !exists {
 			http.Error(w, "Gauge not found", http.StatusNotFound)
 			return
@@ -52,7 +52,7 @@ func (h *valueHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		metric.Value = &value
 	case CounterType:
-		value, exists := h.storage.GetCounter(metric.ID)
+		value, exists := h.storage.GetCounter(r.Context(), metric.ID)
 		if !exists {
 			http.Error(w, "Counter not found", http.StatusNotFound)
 			return
