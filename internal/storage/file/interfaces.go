@@ -1,17 +1,21 @@
 package file
 
-import "github.com/NoobyTheTurtle/metrics/internal/storage/memory"
+import (
+	"context"
+
+	"github.com/NoobyTheTurtle/metrics/internal/storage/memory"
+)
 
 type Getter interface {
-	Get(key string) (any, bool)
+	Get(ctx context.Context, key string) (any, bool)
 }
 
 type Setter interface {
-	Set(key string, value any) (any, error)
+	Set(ctx context.Context, key string, value any) (any, error)
 }
 
 type GetAll interface {
-	GetAll() map[string]any
+	GetAll(ctx context.Context) (map[string]any, error)
 }
 
 type MemStorage interface {

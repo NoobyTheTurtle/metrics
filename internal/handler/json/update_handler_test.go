@@ -29,7 +29,7 @@ func Test_updateHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(7770.0, nil)
+				mockStorage.EXPECT().UpdateGauge(gomock.Any(), "HeapObjects", 7770.0).Return(7770.0, nil)
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
@@ -44,7 +44,7 @@ func Test_updateHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(int64(30), nil)
+				mockStorage.EXPECT().UpdateCounter(gomock.Any(), "PollCount", int64(30)).Return(int64(30), nil)
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
@@ -114,7 +114,7 @@ func Test_updateHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateGauge("HeapObjects", 7770.0).Return(0.0, errors.New("gauge update error"))
+				mockStorage.EXPECT().UpdateGauge(gomock.Any(), "HeapObjects", 7770.0).Return(0.0, errors.New("gauge update error"))
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusInternalServerError,
@@ -129,7 +129,7 @@ func Test_updateHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().UpdateCounter("PollCount", int64(30)).Return(int64(0), errors.New("counter update error"))
+				mockStorage.EXPECT().UpdateCounter(gomock.Any(), "PollCount", int64(30)).Return(int64(0), errors.New("counter update error"))
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusInternalServerError,

@@ -10,6 +10,7 @@
 package adapter
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -40,18 +41,18 @@ func (m *MockGetter) EXPECT() *MockGetterMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGetter) Get(key string) (any, bool) {
+func (m *MockGetter) Get(ctx context.Context, key string) (any, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", key)
+	ret := m.ctrl.Call(m, "Get", ctx, key)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockGetterMockRecorder) Get(key any) *gomock.Call {
+func (mr *MockGetterMockRecorder) Get(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), ctx, key)
 }
 
 // MockSetter is a mock of Setter interface.
@@ -79,18 +80,18 @@ func (m *MockSetter) EXPECT() *MockSetterMockRecorder {
 }
 
 // Set mocks base method.
-func (m *MockSetter) Set(key string, value any) (any, error) {
+func (m *MockSetter) Set(ctx context.Context, key string, value any) (any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, value)
+	ret := m.ctrl.Call(m, "Set", ctx, key, value)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockSetterMockRecorder) Set(key, value any) *gomock.Call {
+func (mr *MockSetterMockRecorder) Set(ctx, key, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSetter)(nil).Set), key, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSetter)(nil).Set), ctx, key, value)
 }
 
 // MockGetAll is a mock of GetAll interface.
@@ -118,17 +119,18 @@ func (m *MockGetAll) EXPECT() *MockGetAllMockRecorder {
 }
 
 // GetAll mocks base method.
-func (m *MockGetAll) GetAll() map[string]any {
+func (m *MockGetAll) GetAll(ctx context.Context) (map[string]any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
+	ret := m.ctrl.Call(m, "GetAll", ctx)
 	ret0, _ := ret[0].(map[string]any)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockGetAllMockRecorder) GetAll() *gomock.Call {
+func (mr *MockGetAllMockRecorder) GetAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetAll)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetAll)(nil).GetAll), ctx)
 }
 
 // MockSaver is a mock of Saver interface.
@@ -156,17 +158,17 @@ func (m *MockSaver) EXPECT() *MockSaverMockRecorder {
 }
 
 // SaveToFile mocks base method.
-func (m *MockSaver) SaveToFile() error {
+func (m *MockSaver) SaveToFile(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveToFile")
+	ret := m.ctrl.Call(m, "SaveToFile", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveToFile indicates an expected call of SaveToFile.
-func (mr *MockSaverMockRecorder) SaveToFile() *gomock.Call {
+func (mr *MockSaverMockRecorder) SaveToFile(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveToFile", reflect.TypeOf((*MockSaver)(nil).SaveToFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveToFile", reflect.TypeOf((*MockSaver)(nil).SaveToFile), ctx)
 }
 
 // MockLoader is a mock of Loader interface.
@@ -194,17 +196,17 @@ func (m *MockLoader) EXPECT() *MockLoaderMockRecorder {
 }
 
 // LoadFromFile mocks base method.
-func (m *MockLoader) LoadFromFile() error {
+func (m *MockLoader) LoadFromFile(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadFromFile")
+	ret := m.ctrl.Call(m, "LoadFromFile", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // LoadFromFile indicates an expected call of LoadFromFile.
-func (mr *MockLoaderMockRecorder) LoadFromFile() *gomock.Call {
+func (mr *MockLoaderMockRecorder) LoadFromFile(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFromFile", reflect.TypeOf((*MockLoader)(nil).LoadFromFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFromFile", reflect.TypeOf((*MockLoader)(nil).LoadFromFile), ctx)
 }
 
 // MockStorage is a mock of Storage interface.
@@ -232,47 +234,48 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockStorage) Get(key string) (any, bool) {
+func (m *MockStorage) Get(ctx context.Context, key string) (any, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", key)
+	ret := m.ctrl.Call(m, "Get", ctx, key)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockStorageMockRecorder) Get(key any) *gomock.Call {
+func (mr *MockStorageMockRecorder) Get(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorage)(nil).Get), key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorage)(nil).Get), ctx, key)
 }
 
 // GetAll mocks base method.
-func (m *MockStorage) GetAll() map[string]any {
+func (m *MockStorage) GetAll(ctx context.Context) (map[string]any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
+	ret := m.ctrl.Call(m, "GetAll", ctx)
 	ret0, _ := ret[0].(map[string]any)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockStorageMockRecorder) GetAll() *gomock.Call {
+func (mr *MockStorageMockRecorder) GetAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockStorage)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockStorage)(nil).GetAll), ctx)
 }
 
 // Set mocks base method.
-func (m *MockStorage) Set(key string, value any) (any, error) {
+func (m *MockStorage) Set(ctx context.Context, key string, value any) (any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, value)
+	ret := m.ctrl.Call(m, "Set", ctx, key, value)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockStorageMockRecorder) Set(key, value any) *gomock.Call {
+func (mr *MockStorageMockRecorder) Set(ctx, key, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStorage)(nil).Set), key, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStorage)(nil).Set), ctx, key, value)
 }
 
 // MockFileSaver is a mock of FileSaver interface.
@@ -300,29 +303,29 @@ func (m *MockFileSaver) EXPECT() *MockFileSaverMockRecorder {
 }
 
 // LoadFromFile mocks base method.
-func (m *MockFileSaver) LoadFromFile() error {
+func (m *MockFileSaver) LoadFromFile(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadFromFile")
+	ret := m.ctrl.Call(m, "LoadFromFile", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // LoadFromFile indicates an expected call of LoadFromFile.
-func (mr *MockFileSaverMockRecorder) LoadFromFile() *gomock.Call {
+func (mr *MockFileSaverMockRecorder) LoadFromFile(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFromFile", reflect.TypeOf((*MockFileSaver)(nil).LoadFromFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFromFile", reflect.TypeOf((*MockFileSaver)(nil).LoadFromFile), ctx)
 }
 
 // SaveToFile mocks base method.
-func (m *MockFileSaver) SaveToFile() error {
+func (m *MockFileSaver) SaveToFile(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveToFile")
+	ret := m.ctrl.Call(m, "SaveToFile", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveToFile indicates an expected call of SaveToFile.
-func (mr *MockFileSaverMockRecorder) SaveToFile() *gomock.Call {
+func (mr *MockFileSaverMockRecorder) SaveToFile(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveToFile", reflect.TypeOf((*MockFileSaver)(nil).SaveToFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveToFile", reflect.TypeOf((*MockFileSaver)(nil).SaveToFile), ctx)
 }

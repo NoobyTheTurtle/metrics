@@ -27,7 +27,7 @@ func Test_valueHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().GetGauge("HeapObjects").Return(7770.0, true)
+				mockStorage.EXPECT().GetGauge(gomock.Any(), "HeapObjects").Return(7770.0, true)
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
@@ -41,7 +41,7 @@ func Test_valueHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().GetCounter("PollCount").Return(int64(30), true)
+				mockStorage.EXPECT().GetCounter(gomock.Any(), "PollCount").Return(int64(30), true)
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusOK,
@@ -73,7 +73,7 @@ func Test_valueHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().GetGauge("NonExistentGauge").Return(0.0, false)
+				mockStorage.EXPECT().GetGauge(gomock.Any(), "NonExistentGauge").Return(0.0, false)
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusNotFound,
@@ -87,7 +87,7 @@ func Test_valueHandler_ServeHTTP(t *testing.T) {
 			}`,
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
-				mockStorage.EXPECT().GetCounter("NonExistentCounter").Return(int64(0), false)
+				mockStorage.EXPECT().GetCounter(gomock.Any(), "NonExistentCounter").Return(int64(0), false)
 				return mockStorage
 			},
 			expectedStatusCode: http.StatusNotFound,

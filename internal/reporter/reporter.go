@@ -19,9 +19,11 @@ func NewReporter(metrics MetricsReporter, logger ReporterLogger, reportInterval 
 }
 
 func (r *Reporter) Run() {
-	for {
-		time.Sleep(r.reportInterval)
+	ticker := time.NewTicker(r.reportInterval)
+	defer ticker.Stop()
 
+	for {
+		<-ticker.C
 		r.metrics.SendMetrics()
 		r.logger.Info("Metrics sent to server")
 	}
