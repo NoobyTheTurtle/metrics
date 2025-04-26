@@ -29,15 +29,11 @@ func NewDBClient(ctx context.Context, dsn string) (*DBClient, error) {
 }
 
 func (c *DBClient) Close() {
-	if c != nil && c.db != nil {
+	if c.db != nil {
 		c.db.Close()
 	}
 }
 
 func (c *DBClient) Ping(ctx context.Context) error {
-	if c == nil || c.db == nil {
-		return nil
-	}
-
 	return c.db.PingContext(ctx)
 }
