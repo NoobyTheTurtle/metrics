@@ -96,7 +96,10 @@ func (ps *PostgresStorage) GetAll(ctx context.Context) (map[string]any, error) {
 		var valueInt sql.NullInt64
 
 		if err := rows.Scan(&key, &valueFloat, &valueInt); err != nil {
-			continue
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, nil
+			}
+			return nil, fmt.Errorf("failed to scan metric: %w", err)
 		}
 
 		switch {
@@ -105,6 +108,10 @@ func (ps *PostgresStorage) GetAll(ctx context.Context) (map[string]any, error) {
 		case valueInt.Valid:
 			metrics[key] = valueInt.Int64
 		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating metrics rows: %w", err)
 	}
 
 	return metrics, nil
