@@ -18,8 +18,9 @@ jobs:
 
   metricstest:
     runs-on: ubuntu-latest
-    container: golang:1.23
     needs: branchtest
+    container:
+      image: golang:1.23
 
     services:
       postgres:
