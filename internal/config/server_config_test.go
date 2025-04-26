@@ -45,7 +45,7 @@ func TestNewServerConfig(t *testing.T) {
 				ServerAddress: "localhost:8080",
 				LogLevel:      "info",
 				AppEnv:        "development",
-				DatabaseDSN:   "postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable",
+				DatabaseDSN:   "",
 			},
 		},
 		{
@@ -55,7 +55,7 @@ func TestNewServerConfig(t *testing.T) {
 				ServerAddress: "localhost:9090",
 				LogLevel:      "info",
 				AppEnv:        "development",
-				DatabaseDSN:   "postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable",
+				DatabaseDSN:   "",
 			},
 		},
 		{

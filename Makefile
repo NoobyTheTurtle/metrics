@@ -3,6 +3,8 @@ SERVER_DIR = ./cmd/server
 AGENT_BIN = $(AGENT_DIR)/agent
 SERVER_BIN = $(SERVER_DIR)/server
 
+DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable
+
 .DEFAULT_GOAL := help
 
 .PHONY: test
@@ -55,7 +57,7 @@ run-agent: build-agent
 .PHONY: run-server
 run-server: build-server
 	@echo "Running server..."
-	@$(SERVER_BIN)
+	@DATABASE_DSN="$(DATABASE_DSN)" $(SERVER_BIN)
 
 .PHONY: clean
 clean:
