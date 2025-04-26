@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -81,6 +82,9 @@ func (ps *PostgresStorage) GetAll(ctx context.Context) (map[string]any, error) {
 	`
 	rows, err := ps.db.QueryContext(ctx, query)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get all metrics: %w", err)
 	}
 	defer rows.Close()

@@ -30,7 +30,7 @@ func CreateFileStorage(memStorage *memory.MemoryStorage, filePath string, syncMo
 
 func CreatePostgresStorage(db *sql.DB) (*postgres.PostgresStorage, error) {
 	if db == nil {
-		return nil, errors.New("Database connection is nil")
+		return nil, errors.New("database connection is nil")
 	}
 
 	return postgres.NewPostgresStorage(db), nil
