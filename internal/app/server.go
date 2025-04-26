@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
-func StartServer() error {
+func StartServer(ctx context.Context) error {
 	c, err := config.NewServerConfig("configs/default.yml")
 	if err != nil {
 		return err
@@ -27,14 +28,11 @@ func StartServer() error {
 	}
 	defer l.Sync()
 
-	var dbClient *postgres.DBClient
-	if c.DatabaseDSN != "" {
-		dbClient, err = postgres.NewDBClient(c.DatabaseDSN)
-		if err != nil {
-			return fmt.Errorf("failed to connect to database: %w", err)
-		}
-		defer dbClient.Close()
+	dbClient, err := postgres.NewDBClient(ctx, c.DatabaseDSN)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	defer dbClient.Close()
 
 	metricStorage, err := getMetricStorage(c)
 	if err != nil {
