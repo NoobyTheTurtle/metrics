@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -12,17 +11,10 @@ type DBClient struct {
 	db *sql.DB
 }
 
-func NewDBClient(ctx context.Context, dsn string) (*DBClient, error) {
+func NewDBClient(dsn string) (*DBClient, error) {
 	db, err := sql.Open("pgx", dsn)
 
 	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
-	defer cancel()
-
-	if err := db.PingContext(ctx); err != nil {
 		return nil, err
 	}
 
