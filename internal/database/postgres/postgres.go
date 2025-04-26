@@ -22,7 +22,7 @@ func NewDBClient(ctx context.Context, dsn string) (*DBClient, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
@@ -33,15 +33,9 @@ func NewDBClient(ctx context.Context, dsn string) (*DBClient, error) {
 }
 
 func (c *DBClient) Close() {
-	if c.db != nil {
-		c.db.Close()
-	}
+	c.db.Close()
 }
 
 func (c *DBClient) Ping(ctx context.Context) error {
-	if c.db == nil {
-		return nil
-	}
-
 	return c.db.PingContext(ctx)
 }
