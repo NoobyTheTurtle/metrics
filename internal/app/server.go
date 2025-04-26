@@ -28,7 +28,7 @@ func StartServer(ctx context.Context) error {
 	}
 	defer l.Sync()
 
-	dbClient, err := postgres.NewDBClient(ctx, c.DatabaseDSN)
+	dbClient, err := postgres.NewClient(ctx, c.DatabaseDSN)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}

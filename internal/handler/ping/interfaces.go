@@ -11,7 +11,7 @@ type DBPinger interface {
 	Ping(ctx context.Context) error
 }
 
-var _ DBPinger = (*postgres.DBClient)(nil)
+var _ DBPinger = (*postgres.PostgresClient)(nil)
 var _ DBPinger = (*MockDBPinger)(nil)
 
 type PingLogger interface {

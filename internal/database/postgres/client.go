@@ -3,18 +3,19 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type DBClient struct {
-	db *sql.DB
+type PostgresClient struct {
+	DB *sql.DB
 }
 
-func NewDBClient(ctx context.Context, dsn string) (*DBClient, error) {
+func NewClient(ctx context.Context, dsn string) (*PostgresClient, error) {
 	if dsn == "" {
-		return &DBClient{db: nil}, nil
+		return nil, errors.New("empty DSN provided")
 	}
 
 	db, err := sql.Open("pgx", dsn)
@@ -29,13 +30,11 @@ func NewDBClient(ctx context.Context, dsn string) (*DBClient, error) {
 		return nil, err
 	}
 
-	return &DBClient{db: db}, nil
-}
+	dbClient := &PostgresClient{DB: db}
 
-func (c *DBClient) Close() {
-	c.db.Close()
-}
+	if err := dbClient.runMigrations(); err != nil {
+		return nil, err
+	}
 
-func (c *DBClient) Ping(ctx context.Context) error {
-	return c.db.PingContext(ctx)
+	return dbClient, nil
 }
