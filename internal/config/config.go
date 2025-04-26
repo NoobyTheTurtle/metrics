@@ -18,6 +18,8 @@ type DefaultConfig struct {
 	StoreInterval   uint   `yaml:"store_interval"`
 	FileStoragePath string `yaml:"file_storage_path"`
 	Restore         bool   `yaml:"restore"`
+
+	DatabaseDSN string `yaml:"database_dsn"`
 }
 
 func NewDefaultConfig(configPath string) (*DefaultConfig, error) {

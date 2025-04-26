@@ -64,6 +64,24 @@ clean:
 	@rm -f $(SERVER_BIN)
 	@go clean
 
+.PHONY: postgres
+postgres:
+	@echo "Starting PostgreSQL in Docker..."
+	@docker run --name metrics-postgres \
+		-e POSTGRES_PASSWORD=postgres \
+		-e POSTGRES_USER=postgres \
+		-e POSTGRES_DB=metrics \
+		-p 5432:5432 \
+		-v $(shell pwd)/tmp/postgres-data:/var/lib/postgresql/data \
+		-d \
+		postgres:17-alpine
+
+.PHONY: postgres-stop
+postgres-stop:
+	@echo "Stopping PostgreSQL Docker container..."
+	@docker stop metrics-postgres
+	@docker rm metrics-postgres
+
 .PHONY: help
 help:
 	@echo "Available commands:"
@@ -76,4 +94,6 @@ help:
 	@echo "  make build-all      - Build all projects"
 	@echo "  make run-agent      - Run agent"
 	@echo "  make run-server     - Run server"
+	@echo "  make postgres       - Start PostgreSQL in Docker"
+	@echo "  make postgres-stop  - Stop and remove PostgreSQL Docker container"
 	@echo "  make clean          - Clean binary files and reports"

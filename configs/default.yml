@@ -10,6 +10,9 @@ store_interval: 300
 # Path to file storage
 file_storage_path: "tmp/metrics-db.json"
 
+# PostgreSQL DSN
+database_dsn: "postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable"
+
 # Restore metrics from file storage
 restore: false
 
