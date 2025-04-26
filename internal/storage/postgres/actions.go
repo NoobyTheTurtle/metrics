@@ -96,9 +96,6 @@ func (ps *PostgresStorage) GetAll(ctx context.Context) (map[string]any, error) {
 		var valueInt sql.NullInt64
 
 		if err := rows.Scan(&key, &valueFloat, &valueInt); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return nil, nil
-			}
 			return nil, fmt.Errorf("failed to scan metric: %w", err)
 		}
 
