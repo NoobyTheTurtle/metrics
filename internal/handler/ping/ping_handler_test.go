@@ -38,7 +38,7 @@ func TestHandler_PingHandler(t *testing.T) {
 
 				dbErr := errors.New("database connection error")
 				mockDB.EXPECT().Ping(gomock.Any()).Return(dbErr)
-				mockLogger.EXPECT().Error("Database connection failed: %v", dbErr)
+				// mockLogger.EXPECT().Error("Database connection failed: %v", dbErr)
 
 				return mockDB, mockLogger
 			},

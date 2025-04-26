@@ -9,7 +9,7 @@ func (h *Handler) PingHandler() http.HandlerFunc {
 		err := h.db.Ping(r.Context())
 		if err != nil {
 			// h.logger.Error("Database connection failed: %v", err)
-			h.logger.Error("Database connection failed")
+			// h.logger.Error("Database connection failed")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

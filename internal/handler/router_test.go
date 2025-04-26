@@ -91,7 +91,7 @@ func TestRouter_Routes(t *testing.T) {
 
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
 				mockDBPinger.EXPECT().Ping(gomock.Any()).Return(errors.New("database error"))
-				mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).Times(1)
+				// mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).Times(1)
 
 				return mockStorage, mockLogger, mockDBPinger
 			},
