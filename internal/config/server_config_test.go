@@ -12,7 +12,7 @@ import (
 func TestNewServerConfig(t *testing.T) {
 	oldArgs := os.Args
 	oldEnv := map[string]string{}
-	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV"} {
+	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV", "DATABASE_DSN"} {
 		oldEnv[env] = os.Getenv(env)
 	}
 
@@ -45,6 +45,7 @@ func TestNewServerConfig(t *testing.T) {
 				ServerAddress: "localhost:8080",
 				LogLevel:      "info",
 				AppEnv:        "development",
+				DatabaseDSN:   "host=localhost user=postgres password=postgres dbname=metrics port=5432 sslmode=disable",
 			},
 		},
 		{
@@ -54,34 +55,49 @@ func TestNewServerConfig(t *testing.T) {
 				ServerAddress: "localhost:9090",
 				LogLevel:      "info",
 				AppEnv:        "development",
+				DatabaseDSN:   "host=localhost user=postgres password=postgres dbname=metrics port=5432 sslmode=disable",
+			},
+		},
+		{
+			name: "database dsn command line argument",
+			args: []string{"test", "-d", "host=testhost user=testuser password=testpass dbname=testdb port=5432 sslmode=disable"},
+			expected: &ServerConfig{
+				ServerAddress: "localhost:8080",
+				LogLevel:      "info",
+				AppEnv:        "development",
+				DatabaseDSN:   "host=testhost user=testuser password=testpass dbname=testdb port=5432 sslmode=disable",
 			},
 		},
 		{
 			name: "environment variables",
 			args: []string{"test"},
 			envs: map[string]string{
-				"ADDRESS":   "localhost:7070",
-				"LOG_LEVEL": "debug",
-				"APP_ENV":   "test",
+				"ADDRESS":      "localhost:7070",
+				"LOG_LEVEL":    "debug",
+				"APP_ENV":      "test",
+				"DATABASE_DSN": "host=envhost user=envuser password=envpass dbname=envdb port=5432 sslmode=disable",
 			},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:7070",
 				LogLevel:      "debug",
 				AppEnv:        "test",
+				DatabaseDSN:   "host=envhost user=envuser password=envpass dbname=envdb port=5432 sslmode=disable",
 			},
 		},
 		{
 			name: "environment variables override flags",
-			args: []string{"test", "-a", "localhost:9090"},
+			args: []string{"test", "-a", "localhost:9090", "-d", "host=flaghost user=flaguser password=flagpass dbname=flagdb port=5432 sslmode=disable"},
 			envs: map[string]string{
-				"ADDRESS":   "localhost:7070",
-				"LOG_LEVEL": "debug",
-				"APP_ENV":   "test",
+				"ADDRESS":      "localhost:7070",
+				"LOG_LEVEL":    "debug",
+				"APP_ENV":      "test",
+				"DATABASE_DSN": "host=envhost user=envuser password=envpass dbname=envdb port=5432 sslmode=disable",
 			},
 			expected: &ServerConfig{
 				ServerAddress: "localhost:7070",
 				LogLevel:      "debug",
 				AppEnv:        "test",
+				DatabaseDSN:   "host=envhost user=envuser password=envpass dbname=envdb port=5432 sslmode=disable",
 			},
 		},
 		{
@@ -115,6 +131,7 @@ func TestNewServerConfig(t *testing.T) {
 				assert.Equal(t, tt.expected.ServerAddress, config.ServerAddress)
 				assert.Equal(t, tt.expected.LogLevel, config.LogLevel)
 				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)
+				assert.Equal(t, tt.expected.DatabaseDSN, config.DatabaseDSN)
 			}
 		})
 	}
