@@ -1,10 +1,12 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/NoobyTheTurtle/metrics/internal/config"
+	"github.com/NoobyTheTurtle/metrics/internal/database/postgres"
 	"github.com/NoobyTheTurtle/metrics/internal/handler"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/NoobyTheTurtle/metrics/internal/persister"
@@ -12,7 +14,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
-func StartServer() error {
+func StartServer(ctx context.Context) error {
 	c, err := config.NewServerConfig("configs/default.yml")
 	if err != nil {
 		return err
@@ -26,8 +28,13 @@ func StartServer() error {
 	}
 	defer l.Sync()
 
-	metricStorage, err := getMetricStorage(c)
+	dbClient, err := postgres.NewDBClient(ctx, c.DatabaseDSN)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	defer dbClient.Close()
 
+	metricStorage, err := getMetricStorage(c)
 	if err != nil {
 		return fmt.Errorf("failed to create metric storage: %w", err)
 	}
@@ -37,7 +44,7 @@ func StartServer() error {
 		go p.Run()
 	}
 
-	router := handler.NewRouter(metricStorage, l)
+	router := handler.NewRouter(metricStorage, l, dbClient)
 
 	l.Info("Starting server on %s", c.ServerAddress)
 	return http.ListenAndServe(c.ServerAddress, router.Handler())

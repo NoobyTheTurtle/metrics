@@ -10,6 +10,7 @@
 package handler
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -151,6 +152,23 @@ func (m *MockRouterLogger) EXPECT() *MockRouterLoggerMockRecorder {
 	return m.recorder
 }
 
+// Error mocks base method.
+func (m *MockRouterLogger) Error(format string, args ...any) {
+	m.ctrl.T.Helper()
+	varargs := []any{format}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	m.ctrl.Call(m, "Error", varargs...)
+}
+
+// Error indicates an expected call of Error.
+func (mr *MockRouterLoggerMockRecorder) Error(format any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{format}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Error", reflect.TypeOf((*MockRouterLogger)(nil).Error), varargs...)
+}
+
 // Info mocks base method.
 func (m *MockRouterLogger) Info(format string, args ...any) {
 	m.ctrl.T.Helper()
@@ -166,4 +184,42 @@ func (mr *MockRouterLoggerMockRecorder) Info(format any, args ...any) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{format}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockRouterLogger)(nil).Info), varargs...)
+}
+
+// MockDBPinger is a mock of DBPinger interface.
+type MockDBPinger struct {
+	ctrl     *gomock.Controller
+	recorder *MockDBPingerMockRecorder
+	isgomock struct{}
+}
+
+// MockDBPingerMockRecorder is the mock recorder for MockDBPinger.
+type MockDBPingerMockRecorder struct {
+	mock *MockDBPinger
+}
+
+// NewMockDBPinger creates a new mock instance.
+func NewMockDBPinger(ctrl *gomock.Controller) *MockDBPinger {
+	mock := &MockDBPinger{ctrl: ctrl}
+	mock.recorder = &MockDBPingerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDBPinger) EXPECT() *MockDBPingerMockRecorder {
+	return m.recorder
+}
+
+// Ping mocks base method.
+func (m *MockDBPinger) Ping(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping.
+func (mr *MockDBPingerMockRecorder) Ping(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockDBPinger)(nil).Ping), ctx)
 }

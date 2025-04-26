@@ -15,6 +15,8 @@ type ServerConfig struct {
 	StoreInterval   uint   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
+
+	DatabaseDSN string `env:"DATABASE_DSN"`
 }
 
 func NewServerConfig(configPath string) (*ServerConfig, error) {
@@ -31,6 +33,8 @@ func NewServerConfig(configPath string) (*ServerConfig, error) {
 		StoreInterval:   defaultConfig.StoreInterval,
 		FileStoragePath: defaultConfig.FileStoragePath,
 		Restore:         defaultConfig.Restore,
+
+		DatabaseDSN: defaultConfig.DatabaseDSN,
 	}
 
 	if err := config.parseFlags(); err != nil {
@@ -49,6 +53,7 @@ func (c *ServerConfig) parseFlags() error {
 	flag.UintVar(&c.StoreInterval, "i", c.StoreInterval, "Store interval in seconds")
 	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "File storage path")
 	flag.BoolVar(&c.Restore, "r", c.Restore, "Restore metrics from file storage")
+	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "PostgreSQL DSN")
 
 	flag.Parse()
 

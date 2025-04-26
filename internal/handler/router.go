@@ -6,6 +6,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/handler/html"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/json"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/middleware"
+	"github.com/NoobyTheTurtle/metrics/internal/handler/ping"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/plain"
 	"github.com/go-chi/chi/v5"
 )
@@ -14,12 +15,13 @@ type Router struct {
 	router       chi.Router
 	storage      MetricStorage
 	logger       RouterLogger
+	pingHandler  *ping.Handler
 	htmlHandler  *html.Handler
 	plainHandler *plain.Handler
 	jsonHandler  *json.Handler
 }
 
-func NewRouter(storage MetricStorage, logger RouterLogger) *Router {
+func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger) *Router {
 	r := &Router{
 		router:  chi.NewRouter(),
 		storage: storage,
@@ -29,7 +31,7 @@ func NewRouter(storage MetricStorage, logger RouterLogger) *Router {
 	r.htmlHandler = html.NewHandler(storage)
 	r.plainHandler = plain.NewHandler(storage)
 	r.jsonHandler = json.NewHandler(storage)
-
+	r.pingHandler = ping.NewHandler(dbClient, logger)
 	r.setupMiddleware()
 	r.setupRoutes()
 
@@ -41,6 +43,9 @@ func (r *Router) setupMiddleware() {
 }
 
 func (r *Router) setupRoutes() {
+	// Ping handler
+	r.router.Get("/ping", r.pingHandler.PingHandler())
+
 	// HTML handlers
 	r.router.Group(func(router chi.Router) {
 		router.Use(middleware.ContentTypeMiddleware(html.ContentTypeValue))

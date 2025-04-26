@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"context"
+
+	"github.com/NoobyTheTurtle/metrics/internal/database/postgres"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/html"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/json"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/plain"
@@ -19,7 +22,15 @@ var _ MetricStorage = (*MockMetricStorage)(nil)
 
 type RouterLogger interface {
 	Info(format string, args ...any)
+	Error(format string, args ...any)
 }
 
 var _ RouterLogger = (*logger.ZapLogger)(nil)
 var _ RouterLogger = (*MockRouterLogger)(nil)
+
+type DBPinger interface {
+	Ping(ctx context.Context) error
+}
+
+var _ DBPinger = (*postgres.DBClient)(nil)
+var _ DBPinger = (*MockDBPinger)(nil)
