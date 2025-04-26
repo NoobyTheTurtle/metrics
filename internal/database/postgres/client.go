@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -15,7 +14,7 @@ type PostgresClient struct {
 
 func NewClient(ctx context.Context, dsn string) (*PostgresClient, error) {
 	if dsn == "" {
-		return nil, errors.New("empty DSN provided")
+		return &PostgresClient{DB: nil}, nil
 	}
 
 	db, err := sql.Open("pgx", dsn)

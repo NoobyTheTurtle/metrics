@@ -93,44 +93,6 @@ func (mr *MockGaugeSetterMockRecorder) UpdateGauge(name, value any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockGaugeSetter)(nil).UpdateGauge), name, value)
 }
 
-// MockGaugesGetter is a mock of GaugesGetter interface.
-type MockGaugesGetter struct {
-	ctrl     *gomock.Controller
-	recorder *MockGaugesGetterMockRecorder
-	isgomock struct{}
-}
-
-// MockGaugesGetterMockRecorder is the mock recorder for MockGaugesGetter.
-type MockGaugesGetterMockRecorder struct {
-	mock *MockGaugesGetter
-}
-
-// NewMockGaugesGetter creates a new mock instance.
-func NewMockGaugesGetter(ctrl *gomock.Controller) *MockGaugesGetter {
-	mock := &MockGaugesGetter{ctrl: ctrl}
-	mock.recorder = &MockGaugesGetterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockGaugesGetter) EXPECT() *MockGaugesGetterMockRecorder {
-	return m.recorder
-}
-
-// GetAllGauges mocks base method.
-func (m *MockGaugesGetter) GetAllGauges() map[string]float64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllGauges")
-	ret0, _ := ret[0].(map[string]float64)
-	return ret0
-}
-
-// GetAllGauges indicates an expected call of GetAllGauges.
-func (mr *MockGaugesGetterMockRecorder) GetAllGauges() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockGaugesGetter)(nil).GetAllGauges))
-}
-
 // MockCounterGetter is a mock of CounterGetter interface.
 type MockCounterGetter struct {
 	ctrl     *gomock.Controller
@@ -209,44 +171,6 @@ func (mr *MockCounterSetterMockRecorder) UpdateCounter(name, value any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockCounterSetter)(nil).UpdateCounter), name, value)
 }
 
-// MockCountersGetter is a mock of CountersGetter interface.
-type MockCountersGetter struct {
-	ctrl     *gomock.Controller
-	recorder *MockCountersGetterMockRecorder
-	isgomock struct{}
-}
-
-// MockCountersGetterMockRecorder is the mock recorder for MockCountersGetter.
-type MockCountersGetterMockRecorder struct {
-	mock *MockCountersGetter
-}
-
-// NewMockCountersGetter creates a new mock instance.
-func NewMockCountersGetter(ctrl *gomock.Controller) *MockCountersGetter {
-	mock := &MockCountersGetter{ctrl: ctrl}
-	mock.recorder = &MockCountersGetterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockCountersGetter) EXPECT() *MockCountersGetterMockRecorder {
-	return m.recorder
-}
-
-// GetAllCounters mocks base method.
-func (m *MockCountersGetter) GetAllCounters() map[string]int64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCounters")
-	ret0, _ := ret[0].(map[string]int64)
-	return ret0
-}
-
-// GetAllCounters indicates an expected call of GetAllCounters.
-func (mr *MockCountersGetterMockRecorder) GetAllCounters() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockCountersGetter)(nil).GetAllCounters))
-}
-
 // MockGaugeStorage is a mock of GaugeStorage interface.
 type MockGaugeStorage struct {
 	ctrl     *gomock.Controller
@@ -269,20 +193,6 @@ func NewMockGaugeStorage(ctrl *gomock.Controller) *MockGaugeStorage {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGaugeStorage) EXPECT() *MockGaugeStorageMockRecorder {
 	return m.recorder
-}
-
-// GetAllGauges mocks base method.
-func (m *MockGaugeStorage) GetAllGauges() map[string]float64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllGauges")
-	ret0, _ := ret[0].(map[string]float64)
-	return ret0
-}
-
-// GetAllGauges indicates an expected call of GetAllGauges.
-func (mr *MockGaugeStorageMockRecorder) GetAllGauges() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockGaugeStorage)(nil).GetAllGauges))
 }
 
 // GetGauge mocks base method.
@@ -339,20 +249,6 @@ func (m *MockCounterStorage) EXPECT() *MockCounterStorageMockRecorder {
 	return m.recorder
 }
 
-// GetAllCounters mocks base method.
-func (m *MockCounterStorage) GetAllCounters() map[string]int64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCounters")
-	ret0, _ := ret[0].(map[string]int64)
-	return ret0
-}
-
-// GetAllCounters indicates an expected call of GetAllCounters.
-func (mr *MockCounterStorageMockRecorder) GetAllCounters() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockCounterStorage)(nil).GetAllCounters))
-}
-
 // GetCounter mocks base method.
 func (m *MockCounterStorage) GetCounter(name string) (int64, bool) {
 	m.ctrl.T.Helper()
@@ -405,34 +301,6 @@ func NewMockHandlerStorage(ctrl *gomock.Controller) *MockHandlerStorage {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockHandlerStorage) EXPECT() *MockHandlerStorageMockRecorder {
 	return m.recorder
-}
-
-// GetAllCounters mocks base method.
-func (m *MockHandlerStorage) GetAllCounters() map[string]int64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCounters")
-	ret0, _ := ret[0].(map[string]int64)
-	return ret0
-}
-
-// GetAllCounters indicates an expected call of GetAllCounters.
-func (mr *MockHandlerStorageMockRecorder) GetAllCounters() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockHandlerStorage)(nil).GetAllCounters))
-}
-
-// GetAllGauges mocks base method.
-func (m *MockHandlerStorage) GetAllGauges() map[string]float64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllGauges")
-	ret0, _ := ret[0].(map[string]float64)
-	return ret0
-}
-
-// GetAllGauges indicates an expected call of GetAllGauges.
-func (mr *MockHandlerStorageMockRecorder) GetAllGauges() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockHandlerStorage)(nil).GetAllGauges))
 }
 
 // GetCounter mocks base method.
