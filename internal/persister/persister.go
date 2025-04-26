@@ -19,11 +19,13 @@ func NewPersister(storage MetricsStorage, logger PersisterLogger, storeInterval 
 }
 
 func (p *Persister) Run() {
+	ticker := time.NewTicker(p.interval)
+	defer ticker.Stop()
+
 	p.logger.Info("Periodic saving enabled with interval %v", p.interval)
 
 	for {
-		time.Sleep(p.interval)
-
+		<-ticker.C
 		if err := p.storage.SaveToFile(); err != nil {
 			p.logger.Error("Failed to save metrics: %v", err)
 		} else {
