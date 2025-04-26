@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -14,7 +13,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
-func StartServer(ctx context.Context) error {
+func StartServer() error {
 	c, err := config.NewServerConfig("configs/default.yml")
 	if err != nil {
 		return err
@@ -30,7 +29,7 @@ func StartServer(ctx context.Context) error {
 
 	var dbClient *postgres.DBClient
 	if c.DatabaseDSN != "" {
-		dbClient, err = postgres.NewDBClient(ctx, c.DatabaseDSN)
+		dbClient, err = postgres.NewDBClient(c.DatabaseDSN)
 		if err != nil {
 			return fmt.Errorf("failed to connect to database: %w", err)
 		}
