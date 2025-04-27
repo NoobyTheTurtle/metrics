@@ -1,13 +1,13 @@
 package postgres
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 )
 
 type PostgresStorage struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewPostgresStorage(db *sql.DB) *PostgresStorage {
+func NewPostgresStorage(db *sqlx.DB) *PostgresStorage {
 	return &PostgresStorage{db: db}
 }

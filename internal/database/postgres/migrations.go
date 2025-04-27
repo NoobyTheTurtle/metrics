@@ -14,7 +14,7 @@ func (c *PostgresClient) runMigrations() error {
 		return errors.New("database connection is nil")
 	}
 
-	driver, err := postgres.WithInstance(c.DB, &postgres.Config{})
+	driver, err := postgres.WithInstance(c.DB.DB, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create migration driver: %w", err)
 	}

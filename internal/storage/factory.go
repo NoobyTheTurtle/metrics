@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage/file"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/memory"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/postgres"
+	"github.com/jmoiron/sqlx"
 )
 
 type StorageType string
@@ -28,7 +28,7 @@ func CreateFileStorage(memStorage *memory.MemoryStorage, filePath string, syncMo
 	return file.NewFileStorage(memStorage, filePath, syncMode)
 }
 
-func CreatePostgresStorage(db *sql.DB) (*postgres.PostgresStorage, error) {
+func CreatePostgresStorage(db *sqlx.DB) (*postgres.PostgresStorage, error) {
 	if db == nil {
 		return nil, errors.New("database connection is nil")
 	}
@@ -36,7 +36,7 @@ func CreatePostgresStorage(db *sql.DB) (*postgres.PostgresStorage, error) {
 	return postgres.NewPostgresStorage(db), nil
 }
 
-func NewMetricStorage(ctx context.Context, storageType StorageType, filePath string, syncMode bool, restore bool, db *sql.DB) (*adapter.MetricStorage, error) {
+func NewMetricStorage(ctx context.Context, storageType StorageType, filePath string, syncMode bool, restore bool, db *sqlx.DB) (*adapter.MetricStorage, error) {
 	memStorage := CreateMemoryStorage()
 
 	var metricStorage *adapter.MetricStorage

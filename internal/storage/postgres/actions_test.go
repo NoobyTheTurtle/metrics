@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -64,9 +65,10 @@ func TestPostgresStorage_Get(t *testing.T) {
 			require.NoError(t, err)
 			defer db.Close()
 
+			sqlxDB := sqlx.NewDb(db, "sqlmock")
 			tt.setupMock(mock)
 
-			ps := &PostgresStorage{db: db}
+			ps := &PostgresStorage{db: sqlxDB}
 			ctx := context.Background()
 
 			value, found := ps.Get(ctx, tt.key)
@@ -147,9 +149,10 @@ func TestPostgresStorage_Set(t *testing.T) {
 			require.NoError(t, err)
 			defer db.Close()
 
+			sqlxDB := sqlx.NewDb(db, "sqlmock")
 			tt.setupMock(mock)
 
-			ps := &PostgresStorage{db: db}
+			ps := &PostgresStorage{db: sqlxDB}
 			ctx := context.Background()
 
 			value, err := ps.Set(ctx, tt.key, tt.value)
@@ -216,9 +219,10 @@ func TestPostgresStorage_GetAll(t *testing.T) {
 			require.NoError(t, err)
 			defer db.Close()
 
+			sqlxDB := sqlx.NewDb(db, "sqlmock")
 			tt.setupMock(mock)
 
-			ps := &PostgresStorage{db: db}
+			ps := &PostgresStorage{db: sqlxDB}
 			ctx := context.Background()
 
 			data, err := ps.GetAll(ctx)

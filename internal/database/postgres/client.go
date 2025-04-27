@@ -2,14 +2,14 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 )
 
 type PostgresClient struct {
-	DB *sql.DB
+	DB *sqlx.DB
 }
 
 func NewClient(ctx context.Context, dsn string) (*PostgresClient, error) {
@@ -17,7 +17,7 @@ func NewClient(ctx context.Context, dsn string) (*PostgresClient, error) {
 		return &PostgresClient{DB: nil}, nil
 	}
 
-	db, err := sql.Open("pgx", dsn)
+	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}

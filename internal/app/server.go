@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/persister"
 	"github.com/NoobyTheTurtle/metrics/internal/storage"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
+	"github.com/jmoiron/sqlx"
 )
 
 func StartServer(ctx context.Context) error {
@@ -46,7 +46,7 @@ func StartServer(ctx context.Context) error {
 	return http.ListenAndServe(c.ServerAddress, router.Handler())
 }
 
-func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sql.DB, log *logger.ZapLogger) (*adapter.MetricStorage, error) {
+func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sqlx.DB, log *logger.ZapLogger) (*adapter.MetricStorage, error) {
 	var storageType storage.StorageType
 
 	if c.DatabaseDSN != "" && db != nil {

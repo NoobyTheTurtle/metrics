@@ -3,9 +3,14 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 )
+
+type Metric struct {
+	Key        string          `db:"key"`
+	ValueFloat sql.NullFloat64 `db:"value_float"`
+	ValueInt   sql.NullInt64   `db:"value_int"`
+}
 
 func (ps *PostgresStorage) Get(ctx context.Context, key string) (any, bool) {
 	query := `
@@ -13,19 +18,17 @@ func (ps *PostgresStorage) Get(ctx context.Context, key string) (any, bool) {
 		FROM metrics
 		WHERE key = $1;
 	`
-	var valueFloat sql.NullFloat64
-	var valueInt sql.NullInt64
-
-	err := ps.db.QueryRowContext(ctx, query, key).Scan(&valueFloat, &valueInt)
+	var metric Metric
+	err := ps.db.GetContext(ctx, &metric, query, key)
 	if err != nil {
 		return nil, false
 	}
 
 	switch {
-	case valueFloat.Valid:
-		return valueFloat.Float64, true
-	case valueInt.Valid:
-		return valueInt.Int64, true
+	case metric.ValueFloat.Valid:
+		return metric.ValueFloat.Float64, true
+	case metric.ValueInt.Valid:
+		return metric.ValueInt.Int64, true
 	default:
 		return nil, false
 	}
@@ -54,22 +57,20 @@ func (ps *PostgresStorage) Set(ctx context.Context, key string, value any) (any,
 		RETURNING value_float, value_int;
 	`
 
-	var resultValueFloat sql.NullFloat64
-	var resultValueInt sql.NullInt64
-
-	err := ps.db.QueryRowContext(
+	var result Metric
+	err := ps.db.QueryRowxContext(
 		ctx, query, key, valueFloat, valueInt,
-	).Scan(&resultValueFloat, &resultValueInt)
+	).StructScan(&result)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to set metric: %w", err)
 	}
 
 	switch {
-	case resultValueFloat.Valid:
-		return resultValueFloat.Float64, nil
-	case resultValueInt.Valid:
-		return resultValueInt.Int64, nil
+	case result.ValueFloat.Valid:
+		return result.ValueFloat.Float64, nil
+	case result.ValueInt.Valid:
+		return result.ValueInt.Int64, nil
 	default:
 		return nil, fmt.Errorf("invalid result from database")
 	}
@@ -80,36 +81,21 @@ func (ps *PostgresStorage) GetAll(ctx context.Context) (map[string]any, error) {
 		SELECT key, value_float, value_int
 		FROM metrics;
 	`
-	rows, err := ps.db.QueryContext(ctx, query)
+	var metrics []Metric
+	err := ps.db.SelectContext(ctx, &metrics, query)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("failed to get all metrics: %w", err)
 	}
-	defer rows.Close()
 
-	metrics := make(map[string]any)
-	for rows.Next() {
-		var key string
-		var valueFloat sql.NullFloat64
-		var valueInt sql.NullInt64
-
-		if err := rows.Scan(&key, &valueFloat, &valueInt); err != nil {
-			return nil, fmt.Errorf("failed to scan metric: %w", err)
-		}
-
+	result := make(map[string]any, len(metrics))
+	for _, m := range metrics {
 		switch {
-		case valueFloat.Valid:
-			metrics[key] = valueFloat.Float64
-		case valueInt.Valid:
-			metrics[key] = valueInt.Int64
+		case m.ValueFloat.Valid:
+			result[m.Key] = m.ValueFloat.Float64
+		case m.ValueInt.Valid:
+			result[m.Key] = m.ValueInt.Int64
 		}
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating metrics rows: %w", err)
-	}
-
-	return metrics, nil
+	return result, nil
 }
