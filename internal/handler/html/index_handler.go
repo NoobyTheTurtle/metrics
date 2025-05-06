@@ -56,9 +56,21 @@ func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	gauges, err := h.storage.GetAllGauges(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	counters, err := h.storage.GetAllCounters(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	data := pageData{
-		Gauges:   mapMetrics(h.storage.GetAllGauges()),
-		Counters: mapMetrics(h.storage.GetAllCounters()),
+		Gauges:   mapMetrics(gauges),
+		Counters: mapMetrics(counters),
 	}
 
 	if err := tmpl.Execute(w, data); err != nil {

@@ -30,7 +30,7 @@ func newValueCounterHandler(storage CounterGetter) *valueCounterHandler {
 
 func (h *valueGaugeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
-	value, exists := h.storage.GetGauge(metricName)
+	value, exists := h.storage.GetGauge(r.Context(), metricName)
 
 	if !exists {
 		http.Error(w, "Gauge not found", http.StatusNotFound)
@@ -42,7 +42,7 @@ func (h *valueGaugeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *valueCounterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
-	value, exists := h.storage.GetCounter(metricName)
+	value, exists := h.storage.GetCounter(r.Context(), metricName)
 
 	if !exists {
 		http.Error(w, "Counter not found", http.StatusNotFound)

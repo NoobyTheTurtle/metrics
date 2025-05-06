@@ -19,9 +19,11 @@ func NewCollector(metrics MetricsCollector, logger CollectorLogger, pollInterval
 }
 
 func (c *Collector) Run() {
-	for {
-		time.Sleep(c.pollInterval)
+	ticker := time.NewTicker(c.pollInterval)
+	defer ticker.Stop()
 
+	for {
+		<-ticker.C
 		c.metrics.UpdateMetrics()
 		c.logger.Info("Metrics updated")
 	}

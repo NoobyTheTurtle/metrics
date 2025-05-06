@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -50,14 +51,15 @@ func TestMetricStorage_GetGauge(t *testing.T) {
 
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
-				Get(addPrefix(tt.metricName, GaugePrefix)).
+				Get(gomock.Any(), addPrefix(tt.metricName, GaugePrefix)).
 				Return(tt.mockValue, tt.mockFound)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
-			value, found := ms.GetGauge(tt.metricName)
+			ctx := context.Background()
+			value, found := ms.GetGauge(ctx, tt.metricName)
 
 			assert.Equal(t, tt.expectedFound, found)
 			if tt.expectedFound {
@@ -113,14 +115,15 @@ func TestMetricStorage_UpdateGauge(t *testing.T) {
 
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
-				Set(addPrefix(tt.metricName, GaugePrefix), tt.value).
+				Set(gomock.Any(), addPrefix(tt.metricName, GaugePrefix), tt.value).
 				Return(tt.mockReturn, tt.mockError)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
-			value, err := ms.UpdateGauge(tt.metricName, tt.value)
+			ctx := context.Background()
+			value, err := ms.UpdateGauge(ctx, tt.metricName, tt.value)
 
 			if tt.expectedError {
 				assert.Error(t, err)
@@ -182,15 +185,17 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
-				GetAll().
-				Return(tt.mockData)
+				GetAll(gomock.Any()).
+				Return(tt.mockData, nil)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
-			result := ms.GetAllGauges()
+			ctx := context.Background()
+			result, err := ms.GetAllGauges(ctx)
 
+			assert.NoError(t, err)
 			assert.Equal(t, len(tt.expectedResult), len(result))
 			for k, v := range tt.expectedResult {
 				resultValue, exists := result[k]
@@ -243,14 +248,15 @@ func TestMetricStorage_GetCounter(t *testing.T) {
 
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
-				Get(addPrefix(tt.metricName, CounterPrefix)).
+				Get(gomock.Any(), addPrefix(tt.metricName, CounterPrefix)).
 				Return(tt.mockValue, tt.mockFound)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
-			value, found := ms.GetCounter(tt.metricName)
+			ctx := context.Background()
+			value, found := ms.GetCounter(ctx, tt.metricName)
 
 			assert.Equal(t, tt.expectedFound, found)
 			if tt.expectedFound {
@@ -325,7 +331,7 @@ func TestMetricStorage_UpdateCounter(t *testing.T) {
 
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
-				Get(addPrefix(tt.metricName, CounterPrefix)).
+				Get(gomock.Any(), addPrefix(tt.metricName, CounterPrefix)).
 				Return(tt.mockGetValue, tt.mockGetFound)
 
 			valueToSet := tt.value
@@ -336,14 +342,15 @@ func TestMetricStorage_UpdateCounter(t *testing.T) {
 			}
 
 			mockStorage.EXPECT().
-				Set(addPrefix(tt.metricName, CounterPrefix), valueToSet).
+				Set(gomock.Any(), addPrefix(tt.metricName, CounterPrefix), valueToSet).
 				Return(tt.mockSetReturn, tt.mockSetError)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
-			value, err := ms.UpdateCounter(tt.metricName, tt.value)
+			ctx := context.Background()
+			value, err := ms.UpdateCounter(ctx, tt.metricName, tt.value)
 
 			if tt.expectedError {
 				assert.Error(t, err)
@@ -405,15 +412,17 @@ func TestMetricStorage_GetAllCounters(t *testing.T) {
 
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
-				GetAll().
-				Return(tt.mockData)
+				GetAll(gomock.Any()).
+				Return(tt.mockData, nil)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
-			result := ms.GetAllCounters()
+			ctx := context.Background()
+			result, err := ms.GetAllCounters(ctx)
 
+			assert.NoError(t, err)
 			assert.Equal(t, len(tt.expectedResult), len(result))
 			for k, v := range tt.expectedResult {
 				resultValue, exists := result[k]

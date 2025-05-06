@@ -1,6 +1,7 @@
 package persister
 
 import (
+	"context"
 	"time"
 )
 
@@ -18,13 +19,15 @@ func NewPersister(storage MetricsStorage, logger PersisterLogger, storeInterval 
 	}
 }
 
-func (p *Persister) Run() {
+func (p *Persister) Run(ctx context.Context) {
+	ticker := time.NewTicker(p.interval)
+	defer ticker.Stop()
+
 	p.logger.Info("Periodic saving enabled with interval %v", p.interval)
 
 	for {
-		time.Sleep(p.interval)
-
-		if err := p.storage.SaveToFile(); err != nil {
+		<-ticker.C
+		if err := p.storage.SaveToFile(ctx); err != nil {
 			p.logger.Error("Failed to save metrics: %v", err)
 		} else {
 			p.logger.Info("Successfully saved metrics to file")
