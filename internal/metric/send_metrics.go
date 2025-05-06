@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/NoobyTheTurtle/metrics/internal/model"
+	"github.com/NoobyTheTurtle/metrics/internal/retry"
 )
 
 const (
@@ -22,7 +23,12 @@ func (m *Metrics) SendMetrics() {
 		return
 	}
 
-	if err := m.SendMetricsBatch(metrics); err != nil {
+	op := func() error {
+		return m.SendMetricsBatch(metrics)
+	}
+
+	err := retry.WithRetries(op, retry.RequestErrorChecker)
+	if err != nil {
 		m.logger.Warn("Failed to send metrics batch: %v", err)
 	}
 }

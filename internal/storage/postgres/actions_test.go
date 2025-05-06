@@ -130,7 +130,7 @@ func TestPostgresStorage_Set(t *testing.T) {
 					WillReturnError(errors.New("database error"))
 			},
 			expectedValue: nil,
-			expectedError: errors.New("failed to set metric: database error"),
+			expectedError: errors.New("failed to set metric after retries: StructScan error in SetMetric: database error"),
 		},
 		{
 			name:  "unsupported type",
@@ -209,7 +209,7 @@ func TestPostgresStorage_GetAll(t *testing.T) {
 					WillReturnError(errors.New("database error"))
 			},
 			expectedData:  nil,
-			expectedError: errors.New("failed to get all metrics: database error"),
+			expectedError: errors.New("failed to get all metrics after retries: SelectContext error in GetAllMetrics: database error"),
 		},
 	}
 
