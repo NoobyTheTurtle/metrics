@@ -23,7 +23,7 @@ func newUpdateHandler(storage UpdateStorage) *updateHandler {
 }
 
 func (h *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var metric model.Metrics
+	var metric model.Metric
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -43,7 +43,7 @@ func (h *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch metric.MType {
-	case GaugeType:
+	case model.GaugeType:
 		if metric.Value == nil {
 			http.Error(w, "Value field is required for gauge type", http.StatusBadRequest)
 			return
@@ -56,7 +56,7 @@ func (h *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		metric.Value = &value
-	case CounterType:
+	case model.CounterType:
 		if metric.Delta == nil {
 			http.Error(w, "Delta field is required for counter type", http.StatusBadRequest)
 			return

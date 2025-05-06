@@ -23,7 +23,7 @@ func newValueHandler(storage ValueStorage) *valueHandler {
 }
 
 func (h *valueHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var metric model.Metrics
+	var metric model.Metric
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -43,7 +43,7 @@ func (h *valueHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch metric.MType {
-	case GaugeType:
+	case model.GaugeType:
 		value, exists := h.storage.GetGauge(r.Context(), metric.ID)
 		if !exists {
 			http.Error(w, "Gauge not found", http.StatusNotFound)
@@ -51,7 +51,7 @@ func (h *valueHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		metric.Value = &value
-	case CounterType:
+	case model.CounterType:
 		value, exists := h.storage.GetCounter(r.Context(), metric.ID)
 		if !exists {
 			http.Error(w, "Counter not found", http.StatusNotFound)

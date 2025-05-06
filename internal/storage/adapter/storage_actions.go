@@ -60,14 +60,51 @@ func (ms *MetricStorage) GetCounter(ctx context.Context, name string) (int64, bo
 }
 
 func (ms *MetricStorage) UpdateCounter(ctx context.Context, name string, value int64) (int64, error) {
-	key := addPrefix(name, CounterPrefix)
-
-	currentValue, exists := ms.GetCounter(ctx, name)
-	if exists {
-		value += currentValue
+	if ms.dbStorage == nil {
+		return updateCounter(ctx, ms.storage, name, value)
 	}
 
-	newValue, err := ms.storage.Set(ctx, key, value)
+	tx, err := ms.dbStorage.BeginTransaction(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	value, err = updateCounter(ctx, tx, name, value)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return 0, fmt.Errorf("failed to rollback transaction: %w", err)
+		}
+		return 0, fmt.Errorf("failed to update counter metric: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return value, nil
+}
+
+type UpdateCounterStorage interface {
+	Setter
+	Getter
+}
+
+func updateCounter(ctx context.Context, storage UpdateCounterStorage, name string, value int64) (int64, error) {
+	key := addPrefix(name, CounterPrefix)
+
+	currentValue, exists := storage.Get(ctx, key)
+	var valueToSet int64 = value
+
+	if exists {
+		delta, ok := convertToInt64(currentValue)
+		if !ok {
+			return 0, fmt.Errorf("failed to convert current value to int64: %v", currentValue)
+		}
+
+		valueToSet = value + delta
+	}
+
+	newValue, err := storage.Set(ctx, key, valueToSet)
 	if err != nil {
 		return 0, fmt.Errorf("failed to update counter metric %s: %w", name, err)
 	}

@@ -9,7 +9,12 @@ DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/metrics?sslmode=disa
 
 .PHONY: test
 test:
-	@echo "Running tests..."
+	@echo "Running unit tests..."
+	@go test -count=1 -short ./...
+
+.PHONY: test-all
+test-all:
+	@echo "Running all tests with database..."
 	@go test -count=1 ./...
 
 .PHONY: test-cover
@@ -87,15 +92,16 @@ postgres-stop:
 .PHONY: help
 help:
 	@echo "Available commands:"
-	@echo "  make test           - Run tests"
-	@echo "  make test-cover     - Run tests with coverage report"
-	@echo "  make generate       - Run go generate"
-	@echo "  make generate-mocks - Regenerate all mocks"
-	@echo "  make build-agent    - Build agent"
-	@echo "  make build-server   - Build server"
-	@echo "  make build-all      - Build all projects"
-	@echo "  make run-agent      - Run agent"
-	@echo "  make run-server     - Run server"
-	@echo "  make postgres       - Start PostgreSQL in Docker"
-	@echo "  make postgres-stop  - Stop and remove PostgreSQL Docker container"
-	@echo "  make clean          - Clean binary files and reports"
+	@echo "  make test             - Run unit tests"
+	@echo "  make test-all         - Run all tests with database"
+	@echo "  make test-cover       - Run tests with coverage report"
+	@echo "  make generate         - Run go generate"
+	@echo "  make generate-mocks   - Regenerate all mocks"
+	@echo "  make build-agent      - Build agent"
+	@echo "  make build-server     - Build server"
+	@echo "  make build-all        - Build all projects"
+	@echo "  make run-agent        - Run agent"
+	@echo "  make run-server       - Run server"
+	@echo "  make postgres         - Start PostgreSQL in Docker"
+	@echo "  make postgres-stop    - Stop and remove PostgreSQL Docker container"
+	@echo "  make clean            - Clean binary files and reports"

@@ -21,3 +21,8 @@ func (h *Handler) ValueHandler() http.HandlerFunc {
 	handler := newValueHandler(h.storage)
 	return handler.ServeHTTP
 }
+
+func (h *Handler) UpdatesHandler() http.HandlerFunc {
+	handler := newUpdatesHandler(h.storage)
+	return handler.ServeHTTP
+}

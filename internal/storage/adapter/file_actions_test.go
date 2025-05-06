@@ -42,18 +42,18 @@ func TestMetricStorage_SaveToFile(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockStorage := NewMockStorage(ctrl)
-			var mockFileSaver *MockFileSaver
+			var mockFileStorage *MockFileStorage
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
 			if tt.fileSaverExists {
-				mockFileSaver = NewMockFileSaver(ctrl)
-				mockFileSaver.EXPECT().
+				mockFileStorage = NewMockFileStorage(ctrl)
+				mockFileStorage.EXPECT().
 					SaveToFile(gomock.Any()).
 					Return(tt.mockError)
-				ms.fileSaver = mockFileSaver
+				ms.fileStorage = mockFileStorage
 			}
 
 			ctx := context.Background()
@@ -102,18 +102,18 @@ func TestMetricStorage_LoadFromFile(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockStorage := NewMockStorage(ctrl)
-			var mockFileSaver *MockFileSaver
+			var mockFileStorage *MockFileStorage
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
 			if tt.fileSaverExists {
-				mockFileSaver = NewMockFileSaver(ctrl)
-				mockFileSaver.EXPECT().
+				mockFileStorage = NewMockFileStorage(ctrl)
+				mockFileStorage.EXPECT().
 					LoadFromFile(gomock.Any()).
 					Return(tt.mockError)
-				ms.fileSaver = mockFileSaver
+				ms.fileStorage = mockFileStorage
 			}
 
 			ctx := context.Background()

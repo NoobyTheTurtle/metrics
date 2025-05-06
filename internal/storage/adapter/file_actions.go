@@ -3,15 +3,15 @@ package adapter
 import "context"
 
 func (ms *MetricStorage) SaveToFile(ctx context.Context) error {
-	if ms.fileSaver == nil {
+	if ms.fileStorage == nil {
 		return nil
 	}
-	return ms.fileSaver.SaveToFile(ctx)
+	return ms.fileStorage.SaveToFile(ctx)
 }
 
 func (ms *MetricStorage) LoadFromFile(ctx context.Context) error {
-	if ms.fileSaver == nil {
+	if ms.fileStorage == nil {
 		return nil
 	}
-	return ms.fileSaver.LoadFromFile(ctx)
+	return ms.fileStorage.LoadFromFile(ctx)
 }

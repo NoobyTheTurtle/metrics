@@ -65,6 +65,7 @@ func (r *Router) setupRoutes() {
 		router.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
 		router.Use(middleware.GzipMiddleware)
 		router.Post("/update/", r.jsonHandler.UpdateHandler())
+		router.Post("/updates/", r.jsonHandler.UpdatesHandler())
 		router.Post("/value/", r.jsonHandler.ValueHandler())
 	})
 }

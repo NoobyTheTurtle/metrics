@@ -14,6 +14,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/handler/html"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/json"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/plain"
+	model "github.com/NoobyTheTurtle/metrics/internal/model"
 	"github.com/NoobyTheTurtle/metrics/internal/testutil"
 )
 
@@ -163,6 +164,27 @@ func TestRouter_Routes(t *testing.T) {
 				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
 				mockStorage.EXPECT().UpdateGauge(gomock.Any(), "test", 12.3).Return(12.3, nil)
 
+				return mockStorage, mockLogger, mockDBPinger
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name:        "JSON updates (batch) route",
+			method:      http.MethodPost,
+			path:        "/updates/",
+			requestBody: `[{"id":"test1","type":"gauge","value":12.3},{"id":"test2","type":"counter","delta":10}]`,
+			contentType: json.ContentTypeValue,
+			setupMocks: func(ctrl *gomock.Controller) (*MockMetricStorage, *MockRouterLogger, *MockDBPinger) {
+				mockStorage := NewMockMetricStorage(ctrl)
+				mockLogger := NewMockRouterLogger(ctrl)
+				mockDBPinger := NewMockDBPinger(ctrl)
+
+				mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
+
+				mockStorage.EXPECT().UpdateMetricsBatch(gomock.Any(), model.Metrics{
+					{ID: "test1", MType: "gauge", Value: &[]float64{12.3}[0]},
+					{ID: "test2", MType: "counter", Delta: &[]int64{10}[0]},
+				}).Return(nil)
 				return mockStorage, mockLogger, mockDBPinger
 			},
 			expectedStatusCode: http.StatusOK,

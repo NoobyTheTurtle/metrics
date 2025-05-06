@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	model "github.com/NoobyTheTurtle/metrics/internal/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -170,6 +171,44 @@ func (m *MockCounterSetter) UpdateCounter(ctx context.Context, name string, valu
 func (mr *MockCounterSetterMockRecorder) UpdateCounter(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCounter", reflect.TypeOf((*MockCounterSetter)(nil).UpdateCounter), ctx, name, value)
+}
+
+// MockBatchUpdater is a mock of BatchUpdater interface.
+type MockBatchUpdater struct {
+	ctrl     *gomock.Controller
+	recorder *MockBatchUpdaterMockRecorder
+	isgomock struct{}
+}
+
+// MockBatchUpdaterMockRecorder is the mock recorder for MockBatchUpdater.
+type MockBatchUpdaterMockRecorder struct {
+	mock *MockBatchUpdater
+}
+
+// NewMockBatchUpdater creates a new mock instance.
+func NewMockBatchUpdater(ctrl *gomock.Controller) *MockBatchUpdater {
+	mock := &MockBatchUpdater{ctrl: ctrl}
+	mock.recorder = &MockBatchUpdaterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockBatchUpdater) EXPECT() *MockBatchUpdaterMockRecorder {
+	return m.recorder
+}
+
+// UpdateMetricsBatch mocks base method.
+func (m *MockBatchUpdater) UpdateMetricsBatch(ctx context.Context, metrics model.Metrics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMetricsBatch", ctx, metrics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMetricsBatch indicates an expected call of UpdateMetricsBatch.
+func (mr *MockBatchUpdaterMockRecorder) UpdateMetricsBatch(ctx, metrics any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetricsBatch", reflect.TypeOf((*MockBatchUpdater)(nil).UpdateMetricsBatch), ctx, metrics)
 }
 
 // MockGaugeStorage is a mock of GaugeStorage interface.
@@ -362,4 +401,18 @@ func (m *MockHandlerStorage) UpdateGauge(ctx context.Context, name string, value
 func (mr *MockHandlerStorageMockRecorder) UpdateGauge(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockHandlerStorage)(nil).UpdateGauge), ctx, name, value)
+}
+
+// UpdateMetricsBatch mocks base method.
+func (m *MockHandlerStorage) UpdateMetricsBatch(ctx context.Context, metrics model.Metrics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMetricsBatch", ctx, metrics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMetricsBatch indicates an expected call of UpdateMetricsBatch.
+func (mr *MockHandlerStorageMockRecorder) UpdateMetricsBatch(ctx, metrics any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetricsBatch", reflect.TypeOf((*MockHandlerStorage)(nil).UpdateMetricsBatch), ctx, metrics)
 }

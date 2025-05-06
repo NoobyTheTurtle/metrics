@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	model "github.com/NoobyTheTurtle/metrics/internal/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -128,6 +129,20 @@ func (m *MockMetricStorage) UpdateGauge(ctx context.Context, name string, value 
 func (mr *MockMetricStorageMockRecorder) UpdateGauge(ctx, name, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGauge", reflect.TypeOf((*MockMetricStorage)(nil).UpdateGauge), ctx, name, value)
+}
+
+// UpdateMetricsBatch mocks base method.
+func (m *MockMetricStorage) UpdateMetricsBatch(ctx context.Context, metrics model.Metrics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMetricsBatch", ctx, metrics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMetricsBatch indicates an expected call of UpdateMetricsBatch.
+func (mr *MockMetricStorageMockRecorder) UpdateMetricsBatch(ctx, metrics any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetricsBatch", reflect.TypeOf((*MockMetricStorage)(nil).UpdateMetricsBatch), ctx, metrics)
 }
 
 // MockRouterLogger is a mock of RouterLogger interface.
