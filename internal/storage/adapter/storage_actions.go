@@ -93,7 +93,7 @@ func updateCounter(ctx context.Context, storage UpdateCounterStorage, name strin
 	key := addPrefix(name, CounterPrefix)
 
 	currentValue, exists := storage.Get(ctx, key)
-	var valueToSet int64 = value
+	var valueToSet = value
 
 	if exists {
 		delta, ok := convertToInt64(currentValue)
