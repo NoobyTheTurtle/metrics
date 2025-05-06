@@ -22,7 +22,7 @@ type ServerConfig struct {
 func NewServerConfig(configPath string) (*ServerConfig, error) {
 	defaultConfig, err := NewDefaultConfig(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("loading default config: %w", err)
+		return nil, fmt.Errorf("config.NewServerConfig: loading default config from '%s': %w", configPath, err)
 	}
 
 	config := &ServerConfig{
@@ -42,7 +42,7 @@ func NewServerConfig(configPath string) (*ServerConfig, error) {
 	}
 
 	if err := env.Parse(config); err != nil {
-		return nil, fmt.Errorf("parsing environment variables: %w", err)
+		return nil, fmt.Errorf("config.NewServerConfig: parsing environment variables: %w", err)
 	}
 
 	return config, nil
@@ -58,7 +58,7 @@ func (c *ServerConfig) parseFlags() error {
 	flag.Parse()
 
 	if flag.NArg() > 0 {
-		return fmt.Errorf("unknown command line arguments: %v", flag.Args())
+		return fmt.Errorf("config.ServerConfig.parseFlags: unknown command line arguments: %v", flag.Args())
 	}
 
 	return nil

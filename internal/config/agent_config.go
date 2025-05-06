@@ -18,7 +18,7 @@ type AgentConfig struct {
 func NewAgentConfig(configPath string) (*AgentConfig, error) {
 	defaultConfig, err := NewDefaultConfig(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("loading default config: %w", err)
+		return nil, fmt.Errorf("config.NewAgentConfig: loading default config from '%s': %w", configPath, err)
 	}
 
 	config := &AgentConfig{
@@ -34,7 +34,7 @@ func NewAgentConfig(configPath string) (*AgentConfig, error) {
 	}
 
 	if err := env.Parse(config); err != nil {
-		return nil, fmt.Errorf("parsing environment variables: %w", err)
+		return nil, fmt.Errorf("config.NewAgentConfig: parsing environment variables: %w", err)
 	}
 
 	return config, nil
@@ -48,7 +48,7 @@ func (c *AgentConfig) parseFlags() error {
 	flag.Parse()
 
 	if flag.NArg() > 0 {
-		return fmt.Errorf("unknown command line arguments: %v", flag.Args())
+		return fmt.Errorf("config.AgentConfig.parseFlags: unknown command line arguments: %v", flag.Args())
 	}
 
 	return nil

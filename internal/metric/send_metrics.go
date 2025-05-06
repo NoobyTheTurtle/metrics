@@ -63,11 +63,11 @@ func compressJSON(data []byte) ([]byte, error) {
 
 	_, err := gzWriter.Write(data)
 	if err != nil {
-		return nil, fmt.Errorf("gzip write error: %w", err)
+		return nil, fmt.Errorf("metric.compressJSON: gzip write error: %w", err)
 	}
 
 	if err := gzWriter.Close(); err != nil {
-		return nil, fmt.Errorf("gzip close error: %w", err)
+		return nil, fmt.Errorf("metric.compressJSON: gzip close error: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -80,7 +80,7 @@ func readResponseBody(resp *http.Response) (string, error) {
 	if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
 		reader, err = gzip.NewReader(resp.Body)
 		if err != nil {
-			return "", fmt.Errorf("error creating gzip reader: %w", err)
+			return "", fmt.Errorf("metric.readResponseBody: error creating gzip reader: %w", err)
 		}
 		defer reader.Close()
 	} else {
@@ -89,7 +89,7 @@ func readResponseBody(resp *http.Response) (string, error) {
 
 	body, err := io.ReadAll(reader)
 	if err != nil {
-		return "", fmt.Errorf("error reading response body: %w", err)
+		return "", fmt.Errorf("metric.readResponseBody: error reading response body: %w", err)
 	}
 
 	return string(body), nil
@@ -98,18 +98,18 @@ func readResponseBody(resp *http.Response) (string, error) {
 func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 	jsonData, err := metrics.MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("error marshaling metrics batch: %w", err)
+		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error marshaling metrics batch: %w", err)
 	}
 
 	compressedData, err := compressJSON(jsonData)
 	if err != nil {
-		return fmt.Errorf("error compressing data: %w", err)
+		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error compressing data: %w", err)
 	}
 
 	url := fmt.Sprintf("%s/updates/", m.serverURL)
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(compressedData))
 	if err != nil {
-		return fmt.Errorf("error creating request: %w", err)
+		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error creating request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -118,16 +118,16 @@ func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 
 	resp, err := m.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("error sending request: %w", err)
+		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyText, readErr := readResponseBody(resp)
 		if readErr != nil {
-			return fmt.Errorf("server returned status code: %d, could not read body: %v", resp.StatusCode, readErr)
+			return fmt.Errorf("metric.Metrics.SendMetricsBatch: server returned status code %d, could not read body: %v", resp.StatusCode, readErr)
 		}
-		return fmt.Errorf("server returned status code: %d, body: %s", resp.StatusCode, bodyText)
+		return fmt.Errorf("metric.Metrics.SendMetricsBatch: server returned status code %d, body: %s", resp.StatusCode, bodyText)
 	}
 
 	return nil

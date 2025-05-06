@@ -103,7 +103,7 @@ func TestNewServerConfig(t *testing.T) {
 		{
 			name:           "unknown arguments",
 			args:           []string{"test", "unknown"},
-			expectedErrMsg: "unknown command line arguments",
+			expectedErrMsg: "config.ServerConfig.parseFlags: unknown command line arguments",
 		},
 	}
 

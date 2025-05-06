@@ -31,13 +31,13 @@ func StartServer(ctx context.Context) error {
 
 	dbClient, err := postgres.NewClient(ctx, c.DatabaseDSN)
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+		return fmt.Errorf("app.StartServer: failed to connect to database (DSN: '%s'): %w", c.DatabaseDSN, err)
 	}
 	defer dbClient.Close()
 
 	metricStorage, err := initMetricStorage(ctx, c, dbClient.DB, log)
 	if err != nil {
-		return fmt.Errorf("failed to create metric storage: %w", err)
+		return fmt.Errorf("app.StartServer: failed to create metric storage: %w", err)
 	}
 
 	router := handler.NewRouter(metricStorage, log, dbClient)

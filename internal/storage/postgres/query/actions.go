@@ -31,7 +31,7 @@ func (q *query) GetMetric(ctx context.Context, key string) (any, bool) {
 			if errors.Is(err, sql.ErrNoRows) {
 				return nil
 			}
-			return fmt.Errorf("GetContext error: %w", err)
+			return fmt.Errorf("query.GetMetric: GetContext failed: %w", err)
 		}
 		switch {
 		case metric.ValueFloat.Valid:
@@ -46,9 +46,8 @@ func (q *query) GetMetric(ctx context.Context, key string) (any, bool) {
 		return nil
 	}
 
-	err := retry.WithRetries(op, retry.PgErrorChecker)
-
-	if err != nil {
+	retryErr := retry.WithRetries(op, retry.PgErrorChecker)
+	if retryErr != nil {
 		return nil, false
 	}
 
@@ -78,7 +77,7 @@ func (q *query) SetMetric(ctx context.Context, key string, value any) (any, erro
 		valueInt.Int64 = v
 		valueInt.Valid = true
 	default:
-		return nil, fmt.Errorf("unsupported value type: %T", value)
+		return nil, fmt.Errorf("query.SetMetric: unsupported value type '%T'", value)
 	}
 
 	op := func() error {
@@ -86,7 +85,7 @@ func (q *query) SetMetric(ctx context.Context, key string, value any) (any, erro
 		resultValue = nil
 		row := q.executor.QueryRowxContext(ctx, setMetricQuery, key, valueFloat, valueInt)
 		if err := row.StructScan(&result); err != nil {
-			return fmt.Errorf("StructScan error in SetMetric: %w", err)
+			return fmt.Errorf("query.SetMetric: StructScan failed: %w", err)
 		}
 
 		switch {
@@ -95,14 +94,14 @@ func (q *query) SetMetric(ctx context.Context, key string, value any) (any, erro
 		case result.ValueInt.Valid:
 			resultValue = result.ValueInt.Int64
 		default:
-			return fmt.Errorf("invalid result from database after SetMetric")
+			return fmt.Errorf("query.SetMetric: invalid result from database")
 		}
 		return nil
 	}
 
 	err := retry.WithRetries(op, retry.PgErrorChecker)
 	if err != nil {
-		return nil, fmt.Errorf("failed to set metric after retries: %w", err)
+		return nil, fmt.Errorf("query.SetMetric: operation failed after retries: %w", err)
 	}
 
 	return resultValue, nil
@@ -124,7 +123,7 @@ func (q *query) GetAllMetrics(ctx context.Context) (map[string]any, error) {
 		resultData = make(map[string]any)
 		err := q.executor.SelectContext(ctx, &metrics, getAllMetricsQuery)
 		if err != nil {
-			return fmt.Errorf("SelectContext error in GetAllMetrics: %w", err)
+			return fmt.Errorf("query.GetAllMetrics: SelectContext failed: %w", err)
 		}
 
 		for _, m := range metrics {
@@ -140,7 +139,7 @@ func (q *query) GetAllMetrics(ctx context.Context) (map[string]any, error) {
 
 	err := retry.WithRetries(op, retry.PgErrorChecker)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all metrics after retries: %w", err)
+		return nil, fmt.Errorf("query.GetAllMetrics: operation failed after retries: %w", err)
 	}
 
 	return resultData, nil

@@ -14,14 +14,14 @@ func (ms *MetricStorage) UpdateMetricsBatch(ctx context.Context, metrics model.M
 
 	tx, err := ms.dbStorage.BeginTransaction(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return fmt.Errorf("adapter.MetricStorage.UpdateMetricsBatch: failed to begin transaction: %w", err)
 	}
 
 	if err := updateMetricsBatch(ctx, tx, metrics); err != nil {
-		if err := tx.Rollback(); err != nil {
-			return fmt.Errorf("failed to rollback transaction: %w", err)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("adapter.MetricStorage.UpdateMetricsBatch: failed to rollback transaction: %w", rollbackErr)
 		}
-		return fmt.Errorf("failed to update metrics: %w", err)
+		return fmt.Errorf("adapter.MetricStorage.UpdateMetricsBatch: failed to update metrics batch: %w", err)
 	}
 
 	return tx.Commit()
@@ -39,23 +39,23 @@ func updateMetricsBatch(ctx context.Context, storage BatchStorage, metrics model
 			key := addPrefix(metric.ID, GaugePrefix)
 
 			if metric.Value == nil {
-				return fmt.Errorf("gauge metric %s has nil value", metric.ID)
+				return fmt.Errorf("adapter.updateMetricsBatch: gauge metric '%s' has nil value", metric.ID)
 			}
 
 			if _, err := storage.Set(ctx, key, *metric.Value); err != nil {
-				return fmt.Errorf("failed to set gauge metric: %w", err)
+				return fmt.Errorf("adapter.updateMetricsBatch: failed to set gauge metric '%s': %w", metric.ID, err)
 			}
 		case model.CounterType:
 			if metric.Delta == nil {
-				return fmt.Errorf("counter metric %s has nil delta", metric.ID)
+				return fmt.Errorf("adapter.updateMetricsBatch: counter metric '%s' has nil delta", metric.ID)
 			}
 
 			_, err := updateCounter(ctx, storage, metric.ID, *metric.Delta)
 			if err != nil {
-				return fmt.Errorf("failed to update counter metric: %w", err)
+				return fmt.Errorf("adapter.updateMetricsBatch: failed to update counter metric '%s': %w", metric.ID, err)
 			}
 		default:
-			return fmt.Errorf("unknown metric type: %s", metric.MType)
+			return fmt.Errorf("adapter.updateMetricsBatch: unknown metric type '%s' for metric ID '%s'", metric.MType, metric.ID)
 		}
 	}
 

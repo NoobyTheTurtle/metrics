@@ -74,7 +74,7 @@ func TestUpdateMetricsBatch(t *testing.T) {
 				},
 			},
 			expectedError: true,
-			errorContains: "gauge metric nil_gauge has nil value",
+			errorContains: "adapter.updateMetricsBatch: gauge metric 'nil_gauge' has nil value",
 		},
 		{
 			name: "counter metric with nil delta",
@@ -86,7 +86,7 @@ func TestUpdateMetricsBatch(t *testing.T) {
 				},
 			},
 			expectedError: true,
-			errorContains: "counter metric nil_counter has nil delta",
+			errorContains: "adapter.updateMetricsBatch: counter metric 'nil_counter' has nil delta",
 		},
 		{
 			name: "gauge set fails",
@@ -100,7 +100,7 @@ func TestUpdateMetricsBatch(t *testing.T) {
 			setReturnVal:  nil,
 			setError:      errors.New("storage error"),
 			expectedError: true,
-			errorContains: "failed to set gauge metric",
+			errorContains: "adapter.updateMetricsBatch: failed to set gauge metric 'failed_gauge': storage error",
 		},
 		{
 			name: "counter set fails",
@@ -116,7 +116,7 @@ func TestUpdateMetricsBatch(t *testing.T) {
 			setReturnVal:  nil,
 			setError:      errors.New("storage error"),
 			expectedError: true,
-			errorContains: "failed to update counter metric",
+			errorContains: "adapter.updateMetricsBatch: failed to update counter metric 'failed_counter'",
 		},
 		{
 			name: "unknown metric type",
@@ -127,7 +127,7 @@ func TestUpdateMetricsBatch(t *testing.T) {
 				},
 			},
 			expectedError: true,
-			errorContains: "unknown metric type",
+			errorContains: "adapter.updateMetricsBatch: unknown metric type 'unknown' for metric ID 'unknown_type'",
 		},
 		{
 			name: "multiple metrics of different types",

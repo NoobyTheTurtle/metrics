@@ -53,7 +53,7 @@ func NewMetricStorage(ctx context.Context, storageType StorageType, filePath str
 	case MemoryStorage:
 		metricStorage = adapter.NewStorage(memStorage)
 	default:
-		return nil, fmt.Errorf("unknown storage type: %s", storageType)
+		return nil, fmt.Errorf("storage.NewMetricStorage: unknown storage type '%s'", storageType)
 	}
 
 	return metricStorage, nil

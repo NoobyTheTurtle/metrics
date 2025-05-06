@@ -19,12 +19,12 @@ func (ms *MetricStorage) UpdateGauge(ctx context.Context, name string, value flo
 	key := addPrefix(name, GaugePrefix)
 	newValue, err := ms.storage.Set(ctx, key, value)
 	if err != nil {
-		return 0, fmt.Errorf("failed to update gauge metric %s: %w", name, err)
+		return 0, fmt.Errorf("adapter.MetricStorage.UpdateGauge: failed to update gauge metric '%s': %w", name, err)
 	}
 
 	newValueFloat64, ok := convertToFloat64(newValue)
 	if !ok {
-		return 0, fmt.Errorf("failed to convert newValue to float64: %v", newValue)
+		return 0, fmt.Errorf("adapter.MetricStorage.UpdateGauge: failed to convert newValue '%v' to float64", newValue)
 	}
 
 	return newValueFloat64, nil
@@ -33,7 +33,7 @@ func (ms *MetricStorage) UpdateGauge(ctx context.Context, name string, value flo
 func (ms *MetricStorage) GetAllGauges(ctx context.Context) (map[string]float64, error) {
 	allMetrics, err := ms.storage.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all gauges: %w", err)
+		return nil, fmt.Errorf("adapter.MetricStorage.GetAllGauges: failed to get all gauges: %w", err)
 	}
 	gauges := make(map[string]float64)
 
@@ -66,19 +66,19 @@ func (ms *MetricStorage) UpdateCounter(ctx context.Context, name string, value i
 
 	tx, err := ms.dbStorage.BeginTransaction(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to begin transaction: %w", err)
+		return 0, fmt.Errorf("adapter.MetricStorage.UpdateCounter: failed to begin transaction: %w", err)
 	}
 
 	value, err = updateCounter(ctx, tx, name, value)
 	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			return 0, fmt.Errorf("failed to rollback transaction: %w", err)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return 0, fmt.Errorf("adapter.MetricStorage.UpdateCounter: failed to rollback transaction: %w", rollbackErr)
 		}
-		return 0, fmt.Errorf("failed to update counter metric: %w", err)
+		return 0, fmt.Errorf("adapter.MetricStorage.UpdateCounter: failed to update counter metric during transaction for '%s': %w", name, err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, fmt.Errorf("failed to commit transaction: %w", err)
+		return 0, fmt.Errorf("adapter.MetricStorage.UpdateCounter: failed to commit transaction: %w", err)
 	}
 
 	return value, nil
@@ -98,7 +98,7 @@ func updateCounter(ctx context.Context, storage UpdateCounterStorage, name strin
 	if exists {
 		delta, ok := convertToInt64(currentValue)
 		if !ok {
-			return 0, fmt.Errorf("failed to convert current value to int64: %v", currentValue)
+			return 0, fmt.Errorf("adapter.updateCounter: failed to convert current value '%v' to int64 for key '%s'", currentValue, key)
 		}
 
 		valueToSet = value + delta
@@ -106,12 +106,12 @@ func updateCounter(ctx context.Context, storage UpdateCounterStorage, name strin
 
 	newValue, err := storage.Set(ctx, key, valueToSet)
 	if err != nil {
-		return 0, fmt.Errorf("failed to update counter metric %s: %w", name, err)
+		return 0, fmt.Errorf("adapter.updateCounter: failed to set counter metric for key '%s': %w", key, err)
 	}
 
 	newValueInt64, ok := convertToInt64(newValue)
 	if !ok {
-		return 0, fmt.Errorf("failed to convert newValue to int64: %v", newValue)
+		return 0, fmt.Errorf("adapter.updateCounter: failed to convert newValue '%v' to int64 for key '%s'", newValue, key)
 	}
 
 	return newValueInt64, nil
@@ -120,7 +120,7 @@ func updateCounter(ctx context.Context, storage UpdateCounterStorage, name strin
 func (ms *MetricStorage) GetAllCounters(ctx context.Context) (map[string]int64, error) {
 	allMetrics, err := ms.storage.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all counters: %w", err)
+		return nil, fmt.Errorf("adapter.MetricStorage.GetAllCounters: failed to get all counters: %w", err)
 	}
 	counters := make(map[string]int64)
 

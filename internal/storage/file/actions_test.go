@@ -3,6 +3,7 @@ package file
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -173,7 +174,7 @@ func TestFileStorage_Set_SaveError(t *testing.T) {
 	ctx := context.Background()
 	_, err := fs.Set(ctx, "test", 42)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to save to file")
+	assert.Contains(t, err.Error(), fmt.Sprintf("file.FileStorage.Set: failed to save to file '%s' synchronously", fs.filePath))
 }
 
 func TestFileStorage_GetAll(t *testing.T) {
@@ -370,7 +371,7 @@ func TestFileStorage_LoadFromFile_InvalidJSON(t *testing.T) {
 	ctx := context.Background()
 	err := fs.LoadFromFile(ctx)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to unmarshal data")
+	assert.Contains(t, err.Error(), fmt.Sprintf("file.FileStorage.LoadFromFile: failed to unmarshal data from file '%s'", fs.filePath))
 }
 
 func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
@@ -400,5 +401,5 @@ func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
 	ctx := context.Background()
 	err = fs.LoadFromFile(ctx)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to set value for key")
+	assert.Contains(t, err.Error(), "file.FileStorage.LoadFromFile: failed to set value for key 'key1' in memory")
 }

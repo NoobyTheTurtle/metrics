@@ -130,7 +130,7 @@ func TestPostgresStorage_Set(t *testing.T) {
 					WillReturnError(errors.New("database error"))
 			},
 			expectedValue: nil,
-			expectedError: errors.New("failed to set metric after retries: StructScan error in SetMetric: database error"),
+			expectedError: errors.New("StructScan failed: database error"),
 		},
 		{
 			name:  "unsupported type",
@@ -139,7 +139,7 @@ func TestPostgresStorage_Set(t *testing.T) {
 			setupMock: func(mock sqlmock.Sqlmock) {
 			},
 			expectedValue: nil,
-			expectedError: errors.New("unsupported value type: string"),
+			expectedError: errors.New("unsupported value type 'string'"),
 		},
 	}
 
@@ -209,7 +209,7 @@ func TestPostgresStorage_GetAll(t *testing.T) {
 					WillReturnError(errors.New("database error"))
 			},
 			expectedData:  nil,
-			expectedError: errors.New("failed to get all metrics after retries: SelectContext error in GetAllMetrics: database error"),
+			expectedError: errors.New("SelectContext failed: database error"),
 		},
 	}
 
