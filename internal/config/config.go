@@ -18,17 +18,19 @@ type DefaultConfig struct {
 	StoreInterval   uint   `yaml:"store_interval"`
 	FileStoragePath string `yaml:"file_storage_path"`
 	Restore         bool   `yaml:"restore"`
+
+	DatabaseDSN string `yaml:"database_dsn"`
 }
 
 func NewDefaultConfig(configPath string) (*DefaultConfig, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
+		return nil, fmt.Errorf("config.NewDefaultConfig: error reading config file '%s': %w", configPath, err)
 	}
 
 	var config DefaultConfig
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("error parsing config file: %w", err)
+		return nil, fmt.Errorf("config.NewDefaultConfig: error parsing config file '%s': %w", configPath, err)
 	}
 
 	return &config, nil

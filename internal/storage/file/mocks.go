@@ -10,6 +10,7 @@
 package file
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -40,18 +41,18 @@ func (m *MockGetter) EXPECT() *MockGetterMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGetter) Get(key string) (any, bool) {
+func (m *MockGetter) Get(ctx context.Context, key string) (any, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", key)
+	ret := m.ctrl.Call(m, "Get", ctx, key)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockGetterMockRecorder) Get(key any) *gomock.Call {
+func (mr *MockGetterMockRecorder) Get(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), ctx, key)
 }
 
 // MockSetter is a mock of Setter interface.
@@ -79,18 +80,18 @@ func (m *MockSetter) EXPECT() *MockSetterMockRecorder {
 }
 
 // Set mocks base method.
-func (m *MockSetter) Set(key string, value any) (any, error) {
+func (m *MockSetter) Set(ctx context.Context, key string, value any) (any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, value)
+	ret := m.ctrl.Call(m, "Set", ctx, key, value)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockSetterMockRecorder) Set(key, value any) *gomock.Call {
+func (mr *MockSetterMockRecorder) Set(ctx, key, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSetter)(nil).Set), key, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockSetter)(nil).Set), ctx, key, value)
 }
 
 // MockGetAll is a mock of GetAll interface.
@@ -118,17 +119,18 @@ func (m *MockGetAll) EXPECT() *MockGetAllMockRecorder {
 }
 
 // GetAll mocks base method.
-func (m *MockGetAll) GetAll() map[string]any {
+func (m *MockGetAll) GetAll(ctx context.Context) (map[string]any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
+	ret := m.ctrl.Call(m, "GetAll", ctx)
 	ret0, _ := ret[0].(map[string]any)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockGetAllMockRecorder) GetAll() *gomock.Call {
+func (mr *MockGetAllMockRecorder) GetAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetAll)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetAll)(nil).GetAll), ctx)
 }
 
 // MockMemStorage is a mock of MemStorage interface.
@@ -156,45 +158,46 @@ func (m *MockMemStorage) EXPECT() *MockMemStorageMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockMemStorage) Get(key string) (any, bool) {
+func (m *MockMemStorage) Get(ctx context.Context, key string) (any, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", key)
+	ret := m.ctrl.Call(m, "Get", ctx, key)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockMemStorageMockRecorder) Get(key any) *gomock.Call {
+func (mr *MockMemStorageMockRecorder) Get(ctx, key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockMemStorage)(nil).Get), key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockMemStorage)(nil).Get), ctx, key)
 }
 
 // GetAll mocks base method.
-func (m *MockMemStorage) GetAll() map[string]any {
+func (m *MockMemStorage) GetAll(ctx context.Context) (map[string]any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
+	ret := m.ctrl.Call(m, "GetAll", ctx)
 	ret0, _ := ret[0].(map[string]any)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockMemStorageMockRecorder) GetAll() *gomock.Call {
+func (mr *MockMemStorageMockRecorder) GetAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMemStorage)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMemStorage)(nil).GetAll), ctx)
 }
 
 // Set mocks base method.
-func (m *MockMemStorage) Set(key string, value any) (any, error) {
+func (m *MockMemStorage) Set(ctx context.Context, key string, value any) (any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", key, value)
+	ret := m.ctrl.Call(m, "Set", ctx, key, value)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockMemStorageMockRecorder) Set(key, value any) *gomock.Call {
+func (mr *MockMemStorageMockRecorder) Set(ctx, key, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockMemStorage)(nil).Set), key, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockMemStorage)(nil).Set), ctx, key, value)
 }

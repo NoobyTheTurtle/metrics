@@ -1,15 +1,17 @@
 package adapter
 
-func (ms *MetricStorage) SaveToFile() error {
-	if ms.fileSaver == nil {
+import "context"
+
+func (ms *MetricStorage) SaveToFile(ctx context.Context) error {
+	if ms.fileStorage == nil {
 		return nil
 	}
-	return ms.fileSaver.SaveToFile()
+	return ms.fileStorage.SaveToFile(ctx)
 }
 
-func (ms *MetricStorage) LoadFromFile() error {
-	if ms.fileSaver == nil {
+func (ms *MetricStorage) LoadFromFile(ctx context.Context) error {
+	if ms.fileStorage == nil {
 		return nil
 	}
-	return ms.fileSaver.LoadFromFile()
+	return ms.fileStorage.LoadFromFile(ctx)
 }

@@ -1,43 +1,35 @@
 package plain
 
 import (
+	"context"
+
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
 type GaugeGetter interface {
-	GetGauge(name string) (float64, bool)
+	GetGauge(ctx context.Context, name string) (float64, bool)
 }
 
 type GaugeSetter interface {
-	UpdateGauge(name string, value float64) (float64, error)
-}
-
-type GaugesGetter interface {
-	GetAllGauges() map[string]float64
+	UpdateGauge(ctx context.Context, name string, value float64) (float64, error)
 }
 
 type CounterGetter interface {
-	GetCounter(name string) (int64, bool)
+	GetCounter(ctx context.Context, name string) (int64, bool)
 }
 
 type CounterSetter interface {
-	UpdateCounter(name string, value int64) (int64, error)
-}
-
-type CountersGetter interface {
-	GetAllCounters() map[string]int64
+	UpdateCounter(ctx context.Context, name string, value int64) (int64, error)
 }
 
 type GaugeStorage interface {
 	GaugeGetter
 	GaugeSetter
-	GaugesGetter
 }
 
 type CounterStorage interface {
 	CounterGetter
 	CounterSetter
-	CountersGetter
 }
 
 type HandlerStorage interface {
