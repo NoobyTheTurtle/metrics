@@ -1,7 +1,9 @@
 package file
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -45,14 +47,15 @@ func TestFileStorage_Get(t *testing.T) {
 
 			mockMemStorage := NewMockMemStorage(ctrl)
 			mockMemStorage.EXPECT().
-				Get(tt.key).
+				Get(gomock.Any(), tt.key).
 				Return(tt.mockValue, tt.mockFound)
 
 			fs := &FileStorage{
 				memStorage: mockMemStorage,
 			}
 
-			value, found := fs.Get(tt.key)
+			ctx := context.Background()
+			value, found := fs.Get(ctx, tt.key)
 
 			assert.Equal(t, tt.expectedFound, found)
 			assert.Equal(t, tt.expectedValue, value)
@@ -100,13 +103,13 @@ func TestFileStorage_Set(t *testing.T) {
 
 			mockMemStorage := NewMockMemStorage(ctrl)
 			mockMemStorage.EXPECT().
-				Set(tt.key, tt.value).
+				Set(gomock.Any(), tt.key, tt.value).
 				Return(tt.value, nil)
 
 			if tt.syncMode && tt.filePath != "" {
 				mockMemStorage.EXPECT().
-					GetAll().
-					Return(map[string]any{tt.key: tt.value})
+					GetAll(gomock.Any()).
+					Return(map[string]any{tt.key: tt.value}, nil)
 			}
 
 			fs := &FileStorage{
@@ -115,7 +118,8 @@ func TestFileStorage_Set(t *testing.T) {
 				filePath:   tt.filePath,
 			}
 
-			result, err := fs.Set(tt.key, tt.value)
+			ctx := context.Background()
+			result, err := fs.Set(ctx, tt.key, tt.value)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.value, result)
@@ -155,11 +159,11 @@ func TestFileStorage_Set_SaveError(t *testing.T) {
 
 	mockMemStorage := NewMockMemStorage(ctrl)
 	mockMemStorage.EXPECT().
-		Set("test", 42).
+		Set(gomock.Any(), "test", 42).
 		Return(42, nil)
 	mockMemStorage.EXPECT().
-		GetAll().
-		Return(map[string]any{"test": 42})
+		GetAll(gomock.Any()).
+		Return(map[string]any{"test": 42}, nil)
 
 	fs := &FileStorage{
 		memStorage: mockMemStorage,
@@ -167,9 +171,10 @@ func TestFileStorage_Set_SaveError(t *testing.T) {
 		filePath:   filepath.Join(readOnlyDir, "cannot_write.json"),
 	}
 
-	_, err := fs.Set("test", 42)
+	ctx := context.Background()
+	_, err := fs.Set(ctx, "test", 42)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to save to file")
+	assert.Contains(t, err.Error(), fmt.Sprintf("file.FileStorage.Set: failed to save to file '%s' synchronously", fs.filePath))
 }
 
 func TestFileStorage_GetAll(t *testing.T) {
@@ -197,15 +202,17 @@ func TestFileStorage_GetAll(t *testing.T) {
 
 			mockMemStorage := NewMockMemStorage(ctrl)
 			mockMemStorage.EXPECT().
-				GetAll().
-				Return(tt.mockData)
+				GetAll(gomock.Any()).
+				Return(tt.mockData, nil)
 
 			fs := &FileStorage{
 				memStorage: mockMemStorage,
 			}
 
-			result := fs.GetAll()
+			ctx := context.Background()
+			result, err := fs.GetAll(ctx)
 
+			require.NoError(t, err)
 			assert.NotNil(t, result)
 			assert.Equal(t, tt.expectedLen, len(result))
 
@@ -245,8 +252,8 @@ func TestFileStorage_SaveToFile(t *testing.T) {
 
 			mockMemStorage := NewMockMemStorage(ctrl)
 			mockMemStorage.EXPECT().
-				GetAll().
-				Return(tt.data).
+				GetAll(gomock.Any()).
+				Return(tt.data, nil).
 				AnyTimes()
 
 			fs := &FileStorage{
@@ -254,7 +261,8 @@ func TestFileStorage_SaveToFile(t *testing.T) {
 				filePath:   tt.filePath,
 			}
 
-			err := fs.SaveToFile()
+			ctx := context.Background()
+			err := fs.SaveToFile(ctx)
 
 			assert.NoError(t, err)
 
@@ -324,10 +332,10 @@ func TestFileStorage_LoadFromFile(t *testing.T) {
 
 			if tt.fileExists {
 				mockMemStorage.EXPECT().
-					Set("key1", "value1").
+					Set(gomock.Any(), "key1", "value1").
 					Return("value1", nil)
 				mockMemStorage.EXPECT().
-					Set("key2", float64(42)).
+					Set(gomock.Any(), "key2", float64(42)).
 					Return(float64(42), nil)
 			}
 
@@ -336,7 +344,8 @@ func TestFileStorage_LoadFromFile(t *testing.T) {
 				filePath:   tt.filePath,
 			}
 
-			err := fs.LoadFromFile()
+			ctx := context.Background()
+			err := fs.LoadFromFile(ctx)
 
 			assert.NoError(t, err)
 		})
@@ -359,9 +368,10 @@ func TestFileStorage_LoadFromFile_InvalidJSON(t *testing.T) {
 		filePath:   tempFile,
 	}
 
-	err := fs.LoadFromFile()
+	ctx := context.Background()
+	err := fs.LoadFromFile(ctx)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to unmarshal data")
+	assert.Contains(t, err.Error(), fmt.Sprintf("file.FileStorage.LoadFromFile: failed to unmarshal data from file '%s'", fs.filePath))
 }
 
 func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
@@ -380,7 +390,7 @@ func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
 
 	mockMemStorage := NewMockMemStorage(ctrl)
 	mockMemStorage.EXPECT().
-		Set("key1", "value1").
+		Set(gomock.Any(), "key1", "value1").
 		Return(nil, assert.AnError)
 
 	fs := &FileStorage{
@@ -388,7 +398,8 @@ func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
 		filePath:   tempFile,
 	}
 
-	err = fs.LoadFromFile()
+	ctx := context.Background()
+	err = fs.LoadFromFile(ctx)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to set value for key")
+	assert.Contains(t, err.Error(), "file.FileStorage.LoadFromFile: failed to set value for key 'key1' in memory")
 }

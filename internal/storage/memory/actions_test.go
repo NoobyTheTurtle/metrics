@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"testing"
 
 	"maps"
@@ -48,7 +49,8 @@ func TestMemoryStorage_Get(t *testing.T) {
 
 			maps.Copy(ms.data, tt.initialData)
 
-			value, found := ms.Get(tt.key)
+			ctx := context.Background()
+			value, found := ms.Get(ctx, tt.key)
 
 			assert.Equal(t, tt.expectedFound, found)
 			if tt.expectedFound {
@@ -93,7 +95,8 @@ func TestMemoryStorage_Set(t *testing.T) {
 
 			maps.Copy(ms.data, tt.initialData)
 
-			result, err := ms.Set(tt.key, tt.value)
+			ctx := context.Background()
+			result, err := ms.Set(ctx, tt.key, tt.value)
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.value, result)
@@ -128,8 +131,10 @@ func TestMemoryStorage_GetAll(t *testing.T) {
 
 			maps.Copy(ms.data, tt.initialData)
 
-			result := ms.GetAll()
+			ctx := context.Background()
+			result, err := ms.GetAll(ctx)
 
+			require.NoError(t, err)
 			require.NotNil(t, result)
 
 			assert.Equal(t, len(tt.initialData), len(result))
@@ -144,7 +149,8 @@ func TestMemoryStorage_GetAll(t *testing.T) {
 				for key := range result {
 					result[key] = "modified"
 
-					originalValue, _ := ms.Get(key)
+					ctx := context.Background()
+					originalValue, _ := ms.Get(ctx, key)
 					assert.NotEqual(t, "modified", originalValue)
 
 					break

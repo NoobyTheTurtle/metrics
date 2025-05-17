@@ -1,6 +1,8 @@
 package persister
 
 import (
+	"context"
+
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
@@ -11,7 +13,7 @@ type PersisterLogger interface {
 }
 
 type MetricsStorage interface {
-	SaveToFile() error
+	SaveToFile(ctx context.Context) error
 }
 
 var _ PersisterLogger = (*logger.ZapLogger)(nil)

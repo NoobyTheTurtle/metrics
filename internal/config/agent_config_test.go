@@ -102,7 +102,7 @@ func TestNewAgentConfig(t *testing.T) {
 			envs: map[string]string{
 				"POLL_INTERVAL": "invalid",
 			},
-			expectedErrMsg: "parsing environment variables",
+			expectedErrMsg: "config.NewAgentConfig: parsing environment variables",
 		},
 		{
 			name: "invalid report interval environment variable",
@@ -110,12 +110,12 @@ func TestNewAgentConfig(t *testing.T) {
 			envs: map[string]string{
 				"REPORT_INTERVAL": "invalid",
 			},
-			expectedErrMsg: "parsing environment variables",
+			expectedErrMsg: "config.NewAgentConfig: parsing environment variables",
 		},
 		{
 			name:           "unknown arguments",
 			args:           []string{"test", "unknown"},
-			expectedErrMsg: "unknown command line arguments",
+			expectedErrMsg: "config.AgentConfig.parseFlags: unknown command line arguments",
 		},
 	}
 

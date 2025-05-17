@@ -1,23 +1,30 @@
 package json
 
 import (
+	"context"
+
+	"github.com/NoobyTheTurtle/metrics/internal/model"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
 type GaugeGetter interface {
-	GetGauge(name string) (float64, bool)
+	GetGauge(ctx context.Context, name string) (float64, bool)
 }
 
 type GaugeSetter interface {
-	UpdateGauge(name string, value float64) (float64, error)
+	UpdateGauge(ctx context.Context, name string, value float64) (float64, error)
 }
 
 type CounterGetter interface {
-	GetCounter(name string) (int64, bool)
+	GetCounter(ctx context.Context, name string) (int64, bool)
 }
 
 type CounterSetter interface {
-	UpdateCounter(name string, value int64) (int64, error)
+	UpdateCounter(ctx context.Context, name string, value int64) (int64, error)
+}
+
+type BatchUpdater interface {
+	UpdateMetricsBatch(ctx context.Context, metrics model.Metrics) error
 }
 
 type GaugeStorage interface {
@@ -33,6 +40,7 @@ type CounterStorage interface {
 type HandlerStorage interface {
 	GaugeStorage
 	CounterStorage
+	BatchUpdater
 }
 
 var _ HandlerStorage = (*adapter.MetricStorage)(nil)

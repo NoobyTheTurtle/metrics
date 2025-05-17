@@ -10,6 +10,7 @@
 package html
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -40,17 +41,18 @@ func (m *MockGaugesGetter) EXPECT() *MockGaugesGetterMockRecorder {
 }
 
 // GetAllGauges mocks base method.
-func (m *MockGaugesGetter) GetAllGauges() map[string]float64 {
+func (m *MockGaugesGetter) GetAllGauges(ctx context.Context) (map[string]float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllGauges")
+	ret := m.ctrl.Call(m, "GetAllGauges", ctx)
 	ret0, _ := ret[0].(map[string]float64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAllGauges indicates an expected call of GetAllGauges.
-func (mr *MockGaugesGetterMockRecorder) GetAllGauges() *gomock.Call {
+func (mr *MockGaugesGetterMockRecorder) GetAllGauges(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockGaugesGetter)(nil).GetAllGauges))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockGaugesGetter)(nil).GetAllGauges), ctx)
 }
 
 // MockCountersGetter is a mock of CountersGetter interface.
@@ -78,17 +80,18 @@ func (m *MockCountersGetter) EXPECT() *MockCountersGetterMockRecorder {
 }
 
 // GetAllCounters mocks base method.
-func (m *MockCountersGetter) GetAllCounters() map[string]int64 {
+func (m *MockCountersGetter) GetAllCounters(ctx context.Context) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCounters")
+	ret := m.ctrl.Call(m, "GetAllCounters", ctx)
 	ret0, _ := ret[0].(map[string]int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAllCounters indicates an expected call of GetAllCounters.
-func (mr *MockCountersGetterMockRecorder) GetAllCounters() *gomock.Call {
+func (mr *MockCountersGetterMockRecorder) GetAllCounters(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockCountersGetter)(nil).GetAllCounters))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockCountersGetter)(nil).GetAllCounters), ctx)
 }
 
 // MockHandlerStorage is a mock of HandlerStorage interface.
@@ -116,29 +119,31 @@ func (m *MockHandlerStorage) EXPECT() *MockHandlerStorageMockRecorder {
 }
 
 // GetAllCounters mocks base method.
-func (m *MockHandlerStorage) GetAllCounters() map[string]int64 {
+func (m *MockHandlerStorage) GetAllCounters(ctx context.Context) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCounters")
+	ret := m.ctrl.Call(m, "GetAllCounters", ctx)
 	ret0, _ := ret[0].(map[string]int64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAllCounters indicates an expected call of GetAllCounters.
-func (mr *MockHandlerStorageMockRecorder) GetAllCounters() *gomock.Call {
+func (mr *MockHandlerStorageMockRecorder) GetAllCounters(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockHandlerStorage)(nil).GetAllCounters))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCounters", reflect.TypeOf((*MockHandlerStorage)(nil).GetAllCounters), ctx)
 }
 
 // GetAllGauges mocks base method.
-func (m *MockHandlerStorage) GetAllGauges() map[string]float64 {
+func (m *MockHandlerStorage) GetAllGauges(ctx context.Context) (map[string]float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllGauges")
+	ret := m.ctrl.Call(m, "GetAllGauges", ctx)
 	ret0, _ := ret[0].(map[string]float64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAllGauges indicates an expected call of GetAllGauges.
-func (mr *MockHandlerStorageMockRecorder) GetAllGauges() *gomock.Call {
+func (mr *MockHandlerStorageMockRecorder) GetAllGauges(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockHandlerStorage)(nil).GetAllGauges))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGauges", reflect.TypeOf((*MockHandlerStorage)(nil).GetAllGauges), ctx)
 }

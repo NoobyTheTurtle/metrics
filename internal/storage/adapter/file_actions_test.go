@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -41,21 +42,22 @@ func TestMetricStorage_SaveToFile(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockStorage := NewMockStorage(ctrl)
-			var mockFileSaver *MockFileSaver
+			var mockFileStorage *MockFileStorage
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
 			if tt.fileSaverExists {
-				mockFileSaver = NewMockFileSaver(ctrl)
-				mockFileSaver.EXPECT().
-					SaveToFile().
+				mockFileStorage = NewMockFileStorage(ctrl)
+				mockFileStorage.EXPECT().
+					SaveToFile(gomock.Any()).
 					Return(tt.mockError)
-				ms.fileSaver = mockFileSaver
+				ms.fileStorage = mockFileStorage
 			}
 
-			err := ms.SaveToFile()
+			ctx := context.Background()
+			err := ms.SaveToFile(ctx)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -100,21 +102,22 @@ func TestMetricStorage_LoadFromFile(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockStorage := NewMockStorage(ctrl)
-			var mockFileSaver *MockFileSaver
+			var mockFileStorage *MockFileStorage
 
 			ms := &MetricStorage{
 				storage: mockStorage,
 			}
 
 			if tt.fileSaverExists {
-				mockFileSaver = NewMockFileSaver(ctrl)
-				mockFileSaver.EXPECT().
-					LoadFromFile().
+				mockFileStorage = NewMockFileStorage(ctrl)
+				mockFileStorage.EXPECT().
+					LoadFromFile(gomock.Any()).
 					Return(tt.mockError)
-				ms.fileSaver = mockFileSaver
+				ms.fileStorage = mockFileStorage
 			}
 
-			err := ms.LoadFromFile()
+			ctx := context.Background()
+			err := ms.LoadFromFile(ctx)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

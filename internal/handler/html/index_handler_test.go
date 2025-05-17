@@ -105,8 +105,8 @@ func Test_handler_indexHandler(t *testing.T) {
 					"PollCount": 30,
 				}
 
-				mockStorage.EXPECT().GetAllGauges().Return(gauges)
-				mockStorage.EXPECT().GetAllCounters().Return(counters)
+				mockStorage.EXPECT().GetAllGauges(gomock.Any()).Return(gauges, nil)
+				mockStorage.EXPECT().GetAllCounters(gomock.Any()).Return(counters, nil)
 
 				return mockStorage
 			},
@@ -130,8 +130,8 @@ func Test_handler_indexHandler(t *testing.T) {
 			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
 				mockStorage := NewMockHandlerStorage(ctrl)
 
-				mockStorage.EXPECT().GetAllGauges().Return(map[string]float64{})
-				mockStorage.EXPECT().GetAllCounters().Return(map[string]int64{})
+				mockStorage.EXPECT().GetAllGauges(gomock.Any()).Return(map[string]float64{}, nil)
+				mockStorage.EXPECT().GetAllCounters(gomock.Any()).Return(map[string]int64{}, nil)
 
 				return mockStorage
 			},
