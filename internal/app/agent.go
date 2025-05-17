@@ -24,7 +24,7 @@ func StartAgent() error {
 	}
 	defer l.Sync()
 
-	metrics := metric.NewMetrics(c.ServerAddress, l, !isDev)
+	metrics := metric.NewMetrics(c.ServerAddress, l, !isDev, c.Key)
 
 	metricCollector := collector.NewCollector(metrics, l, c.PollInterval)
 	metricReporter := reporter.NewReporter(metrics, l, c.ReportInterval)

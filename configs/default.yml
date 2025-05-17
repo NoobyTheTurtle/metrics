@@ -16,3 +16,6 @@ restore: false
 
 # Database settings
 database_dsn: ""
+
+# Key for hashing
+key: ""

@@ -6,6 +6,7 @@ import (
 
 type MiddlewareLogger interface {
 	Info(format string, args ...any)
+	Error(format string, args ...any)
 }
 
 var _ MiddlewareLogger = (*logger.ZapLogger)(nil)

@@ -19,13 +19,15 @@ type Router struct {
 	htmlHandler  *html.Handler
 	plainHandler *plain.Handler
 	jsonHandler  *json.Handler
+	serverKey    string
 }
 
-func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger) *Router {
+func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, serverKey string) *Router {
 	r := &Router{
-		router:  chi.NewRouter(),
-		storage: storage,
-		logger:  logger,
+		router:    chi.NewRouter(),
+		storage:   storage,
+		logger:    logger,
+		serverKey: serverKey,
 	}
 
 	r.htmlHandler = html.NewHandler(storage)
@@ -64,6 +66,8 @@ func (r *Router) setupRoutes() {
 	r.router.Group(func(router chi.Router) {
 		router.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
 		router.Use(middleware.GzipMiddleware)
+		router.Use(middleware.HashValidator(r.serverKey, r.logger))
+		router.Use(middleware.HashAppender(r.serverKey, r.logger))
 		router.Post("/update/", r.jsonHandler.UpdateHandler())
 		router.Post("/updates/", r.jsonHandler.UpdatesHandler())
 		router.Post("/value/", r.jsonHandler.ValueHandler())

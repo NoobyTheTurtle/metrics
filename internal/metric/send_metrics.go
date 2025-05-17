@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/NoobyTheTurtle/metrics/internal/hash"
 	"github.com/NoobyTheTurtle/metrics/internal/model"
 	"github.com/NoobyTheTurtle/metrics/internal/retry"
 )
@@ -101,6 +102,16 @@ func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error marshaling metrics batch: %w", err)
 	}
 
+	var hashHeaderValue string
+	if m.key != "" {
+		hash, hashErr := hash.CalculateSHA256(jsonData, m.key)
+		if hashErr != nil {
+			m.logger.Warn("Failed to calculate SHA256 hash for request: %v", hashErr)
+		} else {
+			hashHeaderValue = hash
+		}
+	}
+
 	compressedData, err := compressJSON(jsonData)
 	if err != nil {
 		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error compressing data: %w", err)
@@ -115,6 +126,10 @@ func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Accept-Encoding", "gzip")
+
+	if hashHeaderValue != "" {
+		req.Header.Set("HashSHA256", hashHeaderValue)
+	}
 
 	resp, err := m.client.Do(req)
 	if err != nil {

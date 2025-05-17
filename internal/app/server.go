@@ -40,7 +40,7 @@ func StartServer(ctx context.Context) error {
 		return fmt.Errorf("app.StartServer: failed to create metric storage: %w", err)
 	}
 
-	router := handler.NewRouter(metricStorage, log, dbClient)
+	router := handler.NewRouter(metricStorage, log, dbClient, c.Key)
 
 	log.Info("Starting server on %s", c.ServerAddress)
 	return http.ListenAndServe(c.ServerAddress, router.Handler())

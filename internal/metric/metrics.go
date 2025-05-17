@@ -18,9 +18,10 @@ type Metrics struct {
 	logger    MetricsLogger
 	random    *rand.Rand
 	client    *http.Client
+	key       string
 }
 
-func NewMetrics(serverAddress string, log MetricsLogger, useTLS bool) *Metrics {
+func NewMetrics(serverAddress string, log MetricsLogger, useTLS bool, key string) *Metrics {
 	protocol := "http"
 
 	if useTLS {
@@ -39,5 +40,6 @@ func NewMetrics(serverAddress string, log MetricsLogger, useTLS bool) *Metrics {
 		logger:    log,
 		random:    random,
 		client:    &http.Client{},
+		key:       key,
 	}
 }

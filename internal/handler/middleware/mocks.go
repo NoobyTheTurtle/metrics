@@ -39,6 +39,23 @@ func (m *MockMiddlewareLogger) EXPECT() *MockMiddlewareLoggerMockRecorder {
 	return m.recorder
 }
 
+// Error mocks base method.
+func (m *MockMiddlewareLogger) Error(format string, args ...any) {
+	m.ctrl.T.Helper()
+	varargs := []any{format}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	m.ctrl.Call(m, "Error", varargs...)
+}
+
+// Error indicates an expected call of Error.
+func (mr *MockMiddlewareLoggerMockRecorder) Error(format any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{format}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Error", reflect.TypeOf((*MockMiddlewareLogger)(nil).Error), varargs...)
+}
+
 // Info mocks base method.
 func (m *MockMiddlewareLogger) Info(format string, args ...any) {
 	m.ctrl.T.Helper()
