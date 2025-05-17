@@ -50,13 +50,22 @@ func HashValidator(key string, logger MiddlewareLogger) func(http.Handler) http.
 	}
 }
 
-type responseWriterWithBody struct {
-	http.ResponseWriter
-	body *bytes.Buffer
+type hashWriter struct {
+	originalWriter http.ResponseWriter
+	body           *bytes.Buffer
+	statusCode     int
 }
 
-func (rwb *responseWriterWithBody) Write(b []byte) (int, error) {
-	return rwb.body.Write(b)
+func (hw *hashWriter) Write(b []byte) (int, error) {
+	return hw.body.Write(b)
+}
+
+func (hw *hashWriter) Header() http.Header {
+	return hw.originalWriter.Header()
+}
+
+func (hw *hashWriter) WriteHeader(statusCode int) {
+	hw.statusCode = statusCode
 }
 
 func HashAppender(key string, logger MiddlewareLogger) func(http.Handler) http.Handler {
@@ -67,21 +76,24 @@ func HashAppender(key string, logger MiddlewareLogger) func(http.Handler) http.H
 				return
 			}
 
-			rwb := &responseWriterWithBody{
-				ResponseWriter: w,
+			hw := &hashWriter{
+				originalWriter: w,
 				body:           bytes.NewBuffer([]byte{}),
 			}
 
-			next.ServeHTTP(rwb, r)
+			next.ServeHTTP(hw, r)
 
-			responseBody := rwb.body.Bytes()
+			responseBody := hw.body.Bytes()
 			calculatedHash, err := hash.CalculateSHA256(responseBody, key)
 			if err != nil {
 				logger.Error("Failed to calculate hash for response to %s for %s: %v", r.RemoteAddr, r.URL.Path, err)
 				w.WriteHeader(http.StatusInternalServerError)
-			} else {
-				w.Header().Set("HashSHA256", calculatedHash)
+				return
 			}
+
+			hw.Header().Set("HashSHA256", calculatedHash)
+
+			w.WriteHeader(hw.statusCode)
 
 			_, writeErr := w.Write(responseBody)
 			if writeErr != nil {
