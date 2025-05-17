@@ -11,6 +11,7 @@ type ServerConfig struct {
 	ServerAddress string `env:"ADDRESS"`
 	LogLevel      string `env:"LOG_LEVEL"`
 	AppEnv        string `env:"APP_ENV"`
+	Key           string `env:"KEY"`
 
 	StoreInterval   uint   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
@@ -29,6 +30,7 @@ func NewServerConfig(configPath string) (*ServerConfig, error) {
 		ServerAddress: defaultConfig.ServerAddress,
 		LogLevel:      defaultConfig.LogLevel,
 		AppEnv:        defaultConfig.AppEnv,
+		Key:           defaultConfig.Key,
 
 		StoreInterval:   defaultConfig.StoreInterval,
 		FileStoragePath: defaultConfig.FileStoragePath,
@@ -54,6 +56,7 @@ func (c *ServerConfig) parseFlags() error {
 	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "File storage path")
 	flag.BoolVar(&c.Restore, "r", c.Restore, "Restore metrics from file storage")
 	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "PostgreSQL DSN")
+	flag.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
 
 	flag.Parse()
 
