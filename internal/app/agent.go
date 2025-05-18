@@ -27,14 +27,20 @@ func StartAgent() error {
 	metrics := metric.NewMetrics(c.ServerAddress, l, !isDev, c.Key)
 
 	metricCollector := collector.NewCollector(metrics, l, c.PollInterval)
+	gopsutilCollector := collector.NewGopsutilCollector(metrics, l, c.PollInterval)
 	metricReporter := reporter.NewReporter(metrics, l, c.ReportInterval)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
 		metricCollector.Run()
+	}()
+
+	go func() {
+		defer wg.Done()
+		gopsutilCollector.Run()
 	}()
 
 	go func() {
