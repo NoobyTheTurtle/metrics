@@ -28,7 +28,7 @@ func StartAgent() error {
 
 	metricCollector := collector.NewCollector(metrics, l, c.PollInterval)
 	gopsutilCollector := collector.NewGopsutilCollector(metrics, l, c.PollInterval)
-	metricReporter := reporter.NewReporter(metrics, l, c.ReportInterval)
+	metricReporter := reporter.NewReporter(metrics, l, c.ReportInterval, c.RateLimit)
 
 	var wg sync.WaitGroup
 	wg.Add(3)
