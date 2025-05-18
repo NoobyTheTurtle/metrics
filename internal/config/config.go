@@ -20,7 +20,9 @@ type DefaultConfig struct {
 	Restore         bool   `yaml:"restore"`
 
 	DatabaseDSN string `yaml:"database_dsn"`
-	Key         string `yaml:"key"`
+
+	Key       string `yaml:"key"`
+	RateLimit uint   `yaml:"rate_limit"`
 }
 
 func NewDefaultConfig(configPath string) (*DefaultConfig, error) {

@@ -14,6 +14,7 @@ type AgentConfig struct {
 	LogLevel       string `env:"LOG_LEVEL"`
 	AppEnv         string `env:"APP_ENV"`
 	Key            string `env:"KEY"`
+	RateLimit      uint   `env:"RATE_LIMIT"`
 }
 
 func NewAgentConfig(configPath string) (*AgentConfig, error) {
@@ -29,6 +30,7 @@ func NewAgentConfig(configPath string) (*AgentConfig, error) {
 		LogLevel:       defaultConfig.LogLevel,
 		AppEnv:         defaultConfig.AppEnv,
 		Key:            defaultConfig.Key,
+		RateLimit:      defaultConfig.RateLimit,
 	}
 
 	if err := config.parseFlags(); err != nil {
@@ -47,6 +49,7 @@ func (c *AgentConfig) parseFlags() error {
 	flag.UintVar(&c.PollInterval, "p", c.PollInterval, "Poll interval in seconds")
 	flag.UintVar(&c.ReportInterval, "r", c.ReportInterval, "Report interval in seconds")
 	flag.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
+	flag.UintVar(&c.RateLimit, "l", c.RateLimit, "Rate limit for concurrent requests")
 
 	flag.Parse()
 

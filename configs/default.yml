@@ -19,3 +19,6 @@ database_dsn: ""
 
 # Key for hashing
 key: ""
+
+# Rate limit for requests
+rate_limit: 1
