@@ -26,7 +26,7 @@ func TestNewRouter(t *testing.T) {
 	mockLogger := NewMockRouterLogger(ctrl)
 	mockDBPinger := NewMockDBPinger(ctrl)
 
-	router := NewRouter(mockStorage, mockLogger, mockDBPinger)
+	router := NewRouter(mockStorage, mockLogger, mockDBPinger, "")
 
 	assert.NotNil(t, router)
 	assert.NotNil(t, router.router)
@@ -46,7 +46,7 @@ func TestRouter_Handler(t *testing.T) {
 	mockLogger := NewMockRouterLogger(ctrl)
 	mockDBPinger := NewMockDBPinger(ctrl)
 
-	router := NewRouter(mockStorage, mockLogger, mockDBPinger)
+	router := NewRouter(mockStorage, mockLogger, mockDBPinger, "")
 	handler := router.Handler()
 
 	assert.NotNil(t, handler)
@@ -231,7 +231,7 @@ func TestRouter_Routes(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockStorage, mockLogger, mockDBPinger := tt.setupMocks(ctrl)
-			router := NewRouter(mockStorage, mockLogger, mockDBPinger)
+			router := NewRouter(mockStorage, mockLogger, mockDBPinger, "")
 
 			ts := httptest.NewServer(router.Handler())
 			defer ts.Close()

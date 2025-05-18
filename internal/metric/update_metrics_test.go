@@ -12,7 +12,7 @@ func TestMetrics_UpdateMetrics(t *testing.T) {
 	defer ctrl.Finish()
 	mockLogger := NewMockMetricsLogger(ctrl)
 
-	metrics := NewMetrics("localhost:8080", mockLogger, false)
+	metrics := NewMetrics("localhost:8080", mockLogger, false, "")
 
 	_, exists := metrics.Gauges[HeapObjects]
 	assert.False(t, exists, "HeapObjects should not exist before update")
@@ -41,7 +41,7 @@ func TestMetrics_updateGaugeMemStats(t *testing.T) {
 	defer ctrl.Finish()
 	mockLogger := NewMockMetricsLogger(ctrl)
 
-	metrics := NewMetrics("localhost:8080", mockLogger, false)
+	metrics := NewMetrics("localhost:8080", mockLogger, false, "")
 
 	metrics.updateGaugeMemStats()
 
@@ -67,7 +67,7 @@ func TestMetrics_updateGaugeRandomValue(t *testing.T) {
 	defer ctrl.Finish()
 	mockLogger := NewMockMetricsLogger(ctrl)
 
-	metrics := NewMetrics("localhost:8080", mockLogger, false)
+	metrics := NewMetrics("localhost:8080", mockLogger, false, "")
 
 	metrics.updateGaugeRandomValue()
 
@@ -108,7 +108,7 @@ func TestMetrics_updateCounters(t *testing.T) {
 			defer ctrl.Finish()
 			mockLogger := NewMockMetricsLogger(ctrl)
 
-			metrics := NewMetrics("localhost:8080", mockLogger, false)
+			metrics := NewMetrics("localhost:8080", mockLogger, false, "")
 
 			if tt.initialPollCount > 0 {
 				metrics.Counters[PollCount] = tt.initialPollCount
