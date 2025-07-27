@@ -22,6 +22,13 @@ test-cover:
 	@echo "Running tests with coverage..."
 	@go test -cover -count=1 ./...
 
+.PHONY: test-coverage
+test-coverage:
+	@echo "Running tests with detailed coverage report..."
+	@go test -coverprofile=coverage.out ./... > /dev/null 2>&1
+	@go tool cover -func=coverage.out
+	@rm -f coverage.out
+
 .PHONY: generate
 generate:
 	@echo "Running go generate..."
@@ -37,6 +44,12 @@ generate-mocks:
 		mockgen -source=$$file -destination=$$dir/mocks.go -package=$$pkg; \
 	done
 	@echo "Mocks successfully regenerated"
+
+.PHONY: format
+format:
+	@echo "Formatting Go code with goimports..."
+	@find . -name "*.go" -not -path "./.history/*" -not -path "./vendor/*" | xargs goimports -w -local github.com/smanhack/metrics
+	@echo "Code formatting completed"
 
 .PHONY: build-agent
 build-agent:
@@ -116,8 +129,10 @@ help:
 	@echo "  make test             - Run unit tests"
 	@echo "  make test-all         - Run all tests with database"
 	@echo "  make test-cover       - Run tests with coverage report"
+	@echo "  make test-coverage    - Get total test coverage percentage"
 	@echo "  make generate         - Run go generate"
 	@echo "  make generate-mocks   - Regenerate all mocks"
+	@echo "  make format           - Format Go code with goimports"
 	@echo "  make build-agent      - Build agent"
 	@echo "  make build-server     - Build server"
 	@echo "  make build-all        - Build all projects"
