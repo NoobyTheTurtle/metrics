@@ -9,6 +9,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/handler/ping"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/plain"
 	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
 type Router struct {
@@ -42,6 +43,7 @@ func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, se
 
 func (r *Router) setupMiddleware() {
 	r.router.Use(middleware.LogMiddleware(r.logger))
+	r.router.Mount("/debug", chiMiddleware.Profiler())
 }
 
 func (r *Router) setupRoutes() {

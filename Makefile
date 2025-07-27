@@ -89,6 +89,27 @@ postgres-stop:
 	@docker stop metrics-postgres
 	@docker rm metrics-postgres
 
+.PHONY: profile-base
+profile-base:
+	@echo "Generating base memory profile..."
+	@go run cmd/profile/main.go base
+
+.PHONY: profile-result
+profile-result:
+	@echo "Generating result memory profile..."
+	@go run cmd/profile/main.go result
+
+.PHONY: profile-compare
+profile-compare:
+	@echo "Comparing memory profiles..."
+	@go tool pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
+
+.PHONY: profile-clean
+profile-clean:
+	@echo "Cleaning profile files..."
+	@rm -f profiles/base.pprof
+	@rm -f profiles/result.pprof
+
 .PHONY: help
 help:
 	@echo "Available commands:"
@@ -105,3 +126,7 @@ help:
 	@echo "  make postgres         - Start PostgreSQL in Docker"
 	@echo "  make postgres-stop    - Stop and remove PostgreSQL Docker container"
 	@echo "  make clean            - Clean binary files and reports"
+	@echo "  make profile-base     - Generate base memory profile"
+	@echo "  make profile-result   - Generate result memory profile"
+	@echo "  make profile-compare  - Compare base.pprof vs result.pprof (shows memory diff)"
+	@echo "  make profile-clean    - Clean all profile files"
