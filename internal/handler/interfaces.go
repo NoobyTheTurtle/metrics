@@ -11,26 +11,33 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 )
 
+// MetricStorage объединяет интерфейсы хранилища для всех типов обработчиков (JSON, HTML, plain text).
 type MetricStorage interface {
 	html.HandlerStorage
 	json.HandlerStorage
 	plain.HandlerStorage
 }
 
-var _ MetricStorage = (*adapter.MetricStorage)(nil)
-var _ MetricStorage = (*MockMetricStorage)(nil)
+var (
+	_ MetricStorage = (*adapter.MetricStorage)(nil)
+	_ MetricStorage = (*MockMetricStorage)(nil)
+)
 
 type RouterLogger interface {
 	Info(format string, args ...any)
 	Error(format string, args ...any)
 }
 
-var _ RouterLogger = (*logger.ZapLogger)(nil)
-var _ RouterLogger = (*MockRouterLogger)(nil)
+var (
+	_ RouterLogger = (*logger.ZapLogger)(nil)
+	_ RouterLogger = (*MockRouterLogger)(nil)
+)
 
 type DBPinger interface {
 	Ping(ctx context.Context) error
 }
 
-var _ DBPinger = (*postgres.PostgresClient)(nil)
-var _ DBPinger = (*MockDBPinger)(nil)
+var (
+	_ DBPinger = (*postgres.PostgresClient)(nil)
+	_ DBPinger = (*MockDBPinger)(nil)
+)

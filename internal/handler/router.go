@@ -1,3 +1,5 @@
+// Package handler предоставляет HTTP роутинг и обработку запросов для сервера метрик.
+// Реализует REST API для сбора, получения и управления метриками в форматах JSON, HTML и plain text.
 package handler
 
 import (
@@ -12,6 +14,8 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
+// Router управляет HTTP маршрутизацией и обработчиками для сервера метрик.
+// Объединяет обработчики разных типов (JSON, HTML, plain text).
 type Router struct {
 	router       chi.Router
 	storage      MetricStorage

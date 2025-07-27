@@ -51,6 +51,11 @@ format:
 	@find . -name "*.go" -not -path "./.history/*" -not -path "./vendor/*" | xargs goimports -w -local github.com/smanhack/metrics
 	@echo "Code formatting completed"
 
+.PHONY: godoc
+godoc:
+	@echo "Starting godoc server at http://localhost:8082/pkg/github.com/NoobyTheTurtle/metrics/?m=all"
+	@godoc -http=:8082
+
 .PHONY: build-agent
 build-agent:
 	@echo "Building agent..."
@@ -133,6 +138,7 @@ help:
 	@echo "  make generate         - Run go generate"
 	@echo "  make generate-mocks   - Regenerate all mocks"
 	@echo "  make format           - Format Go code with goimports"
+	@echo "  make godoc            - Start godoc web server at http://localhost:8082"
 	@echo "  make build-agent      - Build agent"
 	@echo "  make build-server     - Build server"
 	@echo "  make build-all        - Build all projects"
