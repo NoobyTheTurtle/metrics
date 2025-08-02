@@ -22,6 +22,13 @@ test-cover:
 	@echo "Running tests with coverage..."
 	@go test -cover -count=1 ./...
 
+.PHONY: test-coverage
+test-coverage:
+	@echo "Running tests with detailed coverage report..."
+	@go test -coverprofile=coverage.out ./... > /dev/null 2>&1
+	@go tool cover -func=coverage.out
+	@rm -f coverage.out
+
 .PHONY: generate
 generate:
 	@echo "Running go generate..."
@@ -37,6 +44,17 @@ generate-mocks:
 		mockgen -source=$$file -destination=$$dir/mocks.go -package=$$pkg; \
 	done
 	@echo "Mocks successfully regenerated"
+
+.PHONY: format
+format:
+	@echo "Formatting Go code with goimports..."
+	@find . -name "*.go" -not -path "./.history/*" -not -path "./vendor/*" | xargs goimports -w -local github.com/smanhack/metrics
+	@echo "Code formatting completed"
+
+.PHONY: godoc
+godoc:
+	@echo "Starting godoc server at http://localhost:8082/pkg/github.com/NoobyTheTurtle/metrics/?m=all"
+	@godoc -http=:8082
 
 .PHONY: build-agent
 build-agent:
@@ -89,14 +107,38 @@ postgres-stop:
 	@docker stop metrics-postgres
 	@docker rm metrics-postgres
 
+.PHONY: profile-base
+profile-base:
+	@echo "Generating base memory profile..."
+	@go run cmd/profile/main.go base
+
+.PHONY: profile-result
+profile-result:
+	@echo "Generating result memory profile..."
+	@go run cmd/profile/main.go result
+
+.PHONY: profile-compare
+profile-compare:
+	@echo "Comparing memory profiles..."
+	@go tool pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
+
+.PHONY: profile-clean
+profile-clean:
+	@echo "Cleaning profile files..."
+	@rm -f profiles/base.pprof
+	@rm -f profiles/result.pprof
+
 .PHONY: help
 help:
 	@echo "Available commands:"
 	@echo "  make test             - Run unit tests"
 	@echo "  make test-all         - Run all tests with database"
 	@echo "  make test-cover       - Run tests with coverage report"
+	@echo "  make test-coverage    - Get total test coverage percentage"
 	@echo "  make generate         - Run go generate"
 	@echo "  make generate-mocks   - Regenerate all mocks"
+	@echo "  make format           - Format Go code with goimports"
+	@echo "  make godoc            - Start godoc web server at http://localhost:8082"
 	@echo "  make build-agent      - Build agent"
 	@echo "  make build-server     - Build server"
 	@echo "  make build-all        - Build all projects"
@@ -105,3 +147,7 @@ help:
 	@echo "  make postgres         - Start PostgreSQL in Docker"
 	@echo "  make postgres-stop    - Stop and remove PostgreSQL Docker container"
 	@echo "  make clean            - Clean binary files and reports"
+	@echo "  make profile-base     - Generate base memory profile"
+	@echo "  make profile-result   - Generate result memory profile"
+	@echo "  make profile-compare  - Compare base.pprof vs result.pprof (shows memory diff)"
+	@echo "  make profile-clean    - Clean all profile files"

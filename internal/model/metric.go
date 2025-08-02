@@ -1,7 +1,9 @@
+// Package model содержит основные структуры данных для сбора и обработки метрик.
 package model
 
 //go:generate easyjson -all metric.go
 
+// MetricType определяет тип метрики.
 type MetricType string
 
 const (
@@ -9,6 +11,7 @@ const (
 	CounterType MetricType = "counter"
 )
 
+// Metric представляет одну метрику с метаданными и значением.
 type Metric struct {
 	ID    string     `json:"id"`              // имя метрики
 	MType MetricType `json:"type"`            // параметр, принимающий значение gauge или counter

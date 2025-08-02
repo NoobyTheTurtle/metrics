@@ -1,3 +1,5 @@
+// Package storage предоставляет фабрику для создания различных типов хранилищ метрик.
+// Поддерживает memory, file и PostgreSQL с единым интерфейсом.
 package storage
 
 import (
@@ -11,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// StorageType определяет тип бэкенда хранилища.
 type StorageType string
 
 const (
@@ -19,18 +22,24 @@ const (
 	PostgresStorage StorageType = "postgres"
 )
 
+// CreateMemoryStorage создает хранилище в памяти.
 func CreateMemoryStorage() *memory.MemoryStorage {
 	return memory.NewMemoryStorage()
 }
 
+// CreateFileStorage создает файловое хранилище с бэкапом в памяти.
+// syncMode определяет немедленную запись на диск.
 func CreateFileStorage(memStorage *memory.MemoryStorage, filePath string, syncMode bool) *file.FileStorage {
 	return file.NewFileStorage(memStorage, filePath, syncMode)
 }
 
+// CreatePostgresStorage создает PostgreSQL хранилище.
 func CreatePostgresStorage(db *sqlx.DB) *postgres.PostgresStorage {
 	return postgres.NewPostgresStorage(db)
 }
 
+// NewMetricStorage создает адаптер хранилища метрик по типу.
+// Обрабатывает инициализацию, конфигурацию и восстановление данных для файлового хранилища.
 func NewMetricStorage(ctx context.Context, storageType StorageType, filePath string, syncMode bool, restore bool, db *sqlx.DB) (*adapter.MetricStorage, error) {
 	memStorage := CreateMemoryStorage()
 

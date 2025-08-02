@@ -1,3 +1,5 @@
+// Package handler предоставляет HTTP роутинг и обработку запросов для сервера метрик.
+// Реализует REST API для сбора, получения и управления метриками в форматах JSON, HTML и plain text.
 package handler
 
 import (
@@ -9,8 +11,11 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/handler/ping"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/plain"
 	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
+// Router управляет HTTP маршрутизацией и обработчиками для сервера метрик.
+// Объединяет обработчики разных типов (JSON, HTML, plain text).
 type Router struct {
 	router       chi.Router
 	storage      MetricStorage
@@ -42,6 +47,7 @@ func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, se
 
 func (r *Router) setupMiddleware() {
 	r.router.Use(middleware.LogMiddleware(r.logger))
+	r.router.Mount("/debug", chiMiddleware.Profiler())
 }
 
 func (r *Router) setupRoutes() {

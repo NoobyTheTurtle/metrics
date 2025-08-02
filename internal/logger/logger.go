@@ -37,7 +37,7 @@ func NewZapLogger(level string, isDev bool) (*ZapLogger, error) {
 }
 
 func (l *ZapLogger) Debug(format string, args ...any) {
-	l.logger.Debugf(format, args)
+	l.logger.Debugf(format, args...)
 }
 
 func (l *ZapLogger) Info(format string, args ...any) {
