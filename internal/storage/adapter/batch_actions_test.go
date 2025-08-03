@@ -221,7 +221,7 @@ func TestMetricStorage_UpdateMetricsBatch(t *testing.T) {
 	}
 
 	mockStorage := NewMockStorage(ctrl)
-	mockDbStorage := NewMockDatabaseStorage(ctrl)
+	mockDBStorage := NewMockDatabaseStorage(ctrl)
 	mockTx := NewMockTransactionalStorage(ctrl)
 
 	tests := []struct {
@@ -253,10 +253,10 @@ func TestMetricStorage_UpdateMetricsBatch(t *testing.T) {
 		},
 		{
 			name:    "success with db storage",
-			ms:      &MetricStorage{dbStorage: mockDbStorage},
+			ms:      &MetricStorage{dbStorage: mockDBStorage},
 			metrics: mockMetrics,
 			mockSetup: func() {
-				mockDbStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
+				mockDBStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
 				mockTx.EXPECT().Set(ctx, addPrefix("gauge1", GaugePrefix), 1.23).Return(1.23, nil)
 				mockTx.EXPECT().Commit().Return(nil)
 			},
@@ -264,20 +264,20 @@ func TestMetricStorage_UpdateMetricsBatch(t *testing.T) {
 		},
 		{
 			name:    "BeginTransaction fails",
-			ms:      &MetricStorage{dbStorage: mockDbStorage},
+			ms:      &MetricStorage{dbStorage: mockDBStorage},
 			metrics: mockMetrics,
 			mockSetup: func() {
-				mockDbStorage.EXPECT().BeginTransaction(ctx).Return(nil, errors.New("begin tx error"))
+				mockDBStorage.EXPECT().BeginTransaction(ctx).Return(nil, errors.New("begin tx error"))
 			},
 			expectedError: true,
 			errContains:   "failed to begin transaction",
 		},
 		{
 			name:    "updateMetricsBatch fails, rollback succeeds",
-			ms:      &MetricStorage{dbStorage: mockDbStorage},
+			ms:      &MetricStorage{dbStorage: mockDBStorage},
 			metrics: mockMetrics,
 			mockSetup: func() {
-				mockDbStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
+				mockDBStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
 				mockTx.EXPECT().Set(ctx, addPrefix("gauge1", GaugePrefix), 1.23).Return(nil, errors.New("update error"))
 				mockTx.EXPECT().Rollback().Return(nil)
 			},
@@ -286,10 +286,10 @@ func TestMetricStorage_UpdateMetricsBatch(t *testing.T) {
 		},
 		{
 			name:    "updateMetricsBatch fails, rollback fails",
-			ms:      &MetricStorage{dbStorage: mockDbStorage},
+			ms:      &MetricStorage{dbStorage: mockDBStorage},
 			metrics: mockMetrics,
 			mockSetup: func() {
-				mockDbStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
+				mockDBStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
 				mockTx.EXPECT().Set(ctx, addPrefix("gauge1", GaugePrefix), 1.23).Return(nil, errors.New("update error"))
 				mockTx.EXPECT().Rollback().Return(errors.New("rollback error"))
 			},
@@ -298,10 +298,10 @@ func TestMetricStorage_UpdateMetricsBatch(t *testing.T) {
 		},
 		{
 			name:    "commit fails",
-			ms:      &MetricStorage{dbStorage: mockDbStorage},
+			ms:      &MetricStorage{dbStorage: mockDBStorage},
 			metrics: mockMetrics,
 			mockSetup: func() {
-				mockDbStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
+				mockDBStorage.EXPECT().BeginTransaction(ctx).Return(mockTx, nil)
 				mockTx.EXPECT().Set(ctx, addPrefix("gauge1", GaugePrefix), 1.23).Return(1.23, nil)
 				mockTx.EXPECT().Commit().Return(errors.New("commit error"))
 			},
