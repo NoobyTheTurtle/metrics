@@ -1,7 +1,9 @@
 AGENT_DIR = ./cmd/agent
 SERVER_DIR = ./cmd/server
+STATICLINT_DIR = ./cmd/staticlint
 AGENT_BIN = $(AGENT_DIR)/agent
 SERVER_BIN = $(SERVER_DIR)/server
+STATICLINT_BIN = $(STATICLINT_DIR)/staticlint
 
 DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable
 
@@ -68,8 +70,14 @@ build-server:
 	@go build -o $(SERVER_BIN) $(SERVER_DIR)
 	@echo "Binary created at: $(SERVER_BIN)"
 
+.PHONY: build-staticlint
+build-staticlint:
+	@echo "Building staticlint..."
+	@cd $(STATICLINT_DIR) && go build -o staticlint .
+	@echo "Staticlint binary created at: $(STATICLINT_BIN)"
+
 .PHONY: build-all
-build-all: build-agent build-server
+build-all: build-agent build-server build-staticlint
 	@echo "All projects built"
 
 .PHONY: run-agent
@@ -87,6 +95,7 @@ clean:
 	@echo "Cleaning..."
 	@rm -f $(AGENT_BIN)
 	@rm -f $(SERVER_BIN)
+	@rm -f $(STATICLINT_BIN)
 	@go clean
 
 .PHONY: postgres
@@ -122,6 +131,11 @@ profile-compare:
 	@echo "Comparing memory profiles..."
 	@go tool pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
 
+.PHONY: staticlint
+staticlint: build-staticlint
+	@echo "Running static analysis with staticlint..."
+	@$(STATICLINT_BIN) ./...
+
 .PHONY: profile-clean
 profile-clean:
 	@echo "Cleaning profile files..."
@@ -141,9 +155,11 @@ help:
 	@echo "  make godoc            - Start godoc web server at http://localhost:8082"
 	@echo "  make build-agent      - Build agent"
 	@echo "  make build-server     - Build server"
+	@echo "  make build-staticlint - Build staticlint analyzer"
 	@echo "  make build-all        - Build all projects"
 	@echo "  make run-agent        - Run agent"
 	@echo "  make run-server       - Run server"
+	@echo "  make staticlint       - Run static analysis on entire project"
 	@echo "  make postgres         - Start PostgreSQL in Docker"
 	@echo "  make postgres-stop    - Stop and remove PostgreSQL Docker container"
 	@echo "  make clean            - Clean binary files and reports"
