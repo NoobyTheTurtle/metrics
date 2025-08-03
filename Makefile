@@ -5,6 +5,14 @@ AGENT_BIN = $(AGENT_DIR)/agent
 SERVER_BIN = $(SERVER_DIR)/server
 STATICLINT_BIN = $(STATICLINT_DIR)/staticlint
 
+# Build version variables
+BUILD_VERSION ?= ""
+BUILD_DATE ?= $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+BUILD_COMMIT ?= $(shell git rev-parse HEAD)
+
+# LDFLAGS for build version injection
+LDFLAGS = -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X main.buildDate=$(BUILD_DATE) -X main.buildCommit=$(BUILD_COMMIT)"
+
 DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable
 
 .DEFAULT_GOAL := help
@@ -61,13 +69,13 @@ godoc:
 .PHONY: build-agent
 build-agent:
 	@echo "Building agent..."
-	@go build -o $(AGENT_BIN) $(AGENT_DIR)
+	@go build $(LDFLAGS) -o $(AGENT_BIN) $(AGENT_DIR)
 	@echo "Binary created at: $(AGENT_BIN)"
 
 .PHONY: build-server
 build-server:
 	@echo "Building server..."
-	@go build -o $(SERVER_BIN) $(SERVER_DIR)
+	@go build $(LDFLAGS) -o $(SERVER_BIN) $(SERVER_DIR)
 	@echo "Binary created at: $(SERVER_BIN)"
 
 .PHONY: build-staticlint
