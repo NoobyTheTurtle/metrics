@@ -3,6 +3,7 @@ package file
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -152,7 +153,7 @@ func TestFileStorage_Set(t *testing.T) {
 func TestFileStorage_Set_SaveError(t *testing.T) {
 	tempDir := t.TempDir()
 	readOnlyDir := filepath.Join(tempDir, "readonly")
-	require.NoError(t, os.Mkdir(readOnlyDir, 0500))
+	require.NoError(t, os.Mkdir(readOnlyDir, 0o500))
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -295,7 +296,7 @@ func TestFileStorage_LoadFromFile(t *testing.T) {
 
 	jsonData, err := json.Marshal(testData)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(tempFile, jsonData, 0644))
+	require.NoError(t, os.WriteFile(tempFile, jsonData, 0o644))
 
 	tests := []struct {
 		name          string
@@ -356,7 +357,7 @@ func TestFileStorage_LoadFromFile_InvalidJSON(t *testing.T) {
 	tempDir := t.TempDir()
 	tempFile := filepath.Join(tempDir, "invalid.json")
 
-	require.NoError(t, os.WriteFile(tempFile, []byte("{invalid json}"), 0644))
+	require.NoError(t, os.WriteFile(tempFile, []byte("{invalid json}"), 0o644))
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -383,7 +384,7 @@ func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
 	}
 	jsonData, err := json.Marshal(testData)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(tempFile, jsonData, 0644))
+	require.NoError(t, os.WriteFile(tempFile, jsonData, 0o644))
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -402,4 +403,54 @@ func TestFileStorage_LoadFromFile_SetError(t *testing.T) {
 	err = fs.LoadFromFile(ctx)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "file.FileStorage.LoadFromFile: failed to set value for key 'key1' in memory")
+}
+
+func TestFileStorage_saveToFileInternal_Errors(t *testing.T) {
+	tempDir := t.TempDir()
+	readOnlyDir := filepath.Join(tempDir, "readonly")
+	require.NoError(t, os.Mkdir(readOnlyDir, 0o500))
+
+	errGetAll := errors.New("get all error")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockMemStorage := NewMockMemStorage(ctrl)
+	fs := &FileStorage{
+		memStorage: mockMemStorage,
+	}
+	ctx := context.Background()
+
+	t.Run("mkdir error", func(t *testing.T) {
+		fs.filePath = filepath.Join(readOnlyDir, "subdir", "test.json")
+		err := fs.saveToFileInternal(ctx)
+		assert.Error(t, err)
+	})
+
+	t.Run("get all error", func(t *testing.T) {
+		fs.filePath = filepath.Join(tempDir, "test.json")
+		mockMemStorage.EXPECT().GetAll(ctx).Return(nil, errGetAll)
+		err := fs.saveToFileInternal(ctx)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), errGetAll.Error())
+	})
+}
+
+func TestFileStorage_LoadFromFile_ReadError(t *testing.T) {
+	tempDir := t.TempDir()
+	readOnlyFile := filepath.Join(tempDir, "readonly.json")
+	require.NoError(t, os.WriteFile(readOnlyFile, []byte("{}"), 0o000))
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockMemStorage := NewMockMemStorage(ctrl)
+	fs := &FileStorage{
+		memStorage: mockMemStorage,
+		filePath:   readOnlyFile,
+	}
+	ctx := context.Background()
+
+	err := fs.LoadFromFile(ctx)
+	assert.Error(t, err)
 }

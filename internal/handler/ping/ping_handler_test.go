@@ -1,73 +1,111 @@
 package ping
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NoobyTheTurtle/metrics/internal/testutil"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
+func TestNewHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockDB := NewMockDBPinger(ctrl)
+	mockLogger := NewMockPingLogger(ctrl)
+
+	handler := NewHandler(mockDB, mockLogger)
+
+	assert.NotNil(t, handler)
+	assert.Equal(t, mockDB, handler.db)
+	assert.Equal(t, mockLogger, handler.logger)
+}
+
 func TestHandler_PingHandler(t *testing.T) {
-	tests := []struct {
-		name               string
-		setupMocks         func(*gomock.Controller) (*MockDBPinger, *MockPingLogger)
-		expectedStatusCode int
-	}{
-		{
-			name: "successful ping",
-			setupMocks: func(ctrl *gomock.Controller) (*MockDBPinger, *MockPingLogger) {
-				mockDB := NewMockDBPinger(ctrl)
-				mockLogger := NewMockPingLogger(ctrl)
+	t.Run("successful ping", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-				mockDB.EXPECT().Ping(gomock.Any()).Return(nil)
+		mockDB := NewMockDBPinger(ctrl)
+		mockLogger := NewMockPingLogger(ctrl)
 
-				return mockDB, mockLogger
-			},
-			expectedStatusCode: http.StatusOK,
-		},
-		{
-			name: "database connection error",
-			setupMocks: func(ctrl *gomock.Controller) (*MockDBPinger, *MockPingLogger) {
-				mockDB := NewMockDBPinger(ctrl)
-				mockLogger := NewMockPingLogger(ctrl)
+		handler := NewHandler(mockDB, mockLogger)
 
-				dbErr := errors.New("database connection error")
-				mockDB.EXPECT().Ping(gomock.Any()).Return(dbErr)
-				mockLogger.EXPECT().Error("Database connection failed: %v", dbErr)
+		mockDB.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
 
-				return mockDB, mockLogger
-			},
-			expectedStatusCode: http.StatusInternalServerError,
-		},
-	}
+		req := httptest.NewRequest("GET", "/ping", nil)
+		w := httptest.NewRecorder()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
+		pingHandler := handler.PingHandler()
+		pingHandler(w, req)
 
-			mockDB, mockLogger := tt.setupMocks(ctrl)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 
-			h := &Handler{
-				db:     mockDB,
-				logger: mockLogger,
-			}
+	t.Run("ping error", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-			r := chi.NewRouter()
-			r.Get("/ping", h.PingHandler())
+		mockDB := NewMockDBPinger(ctrl)
+		mockLogger := NewMockPingLogger(ctrl)
 
-			ts := httptest.NewServer(r)
-			defer ts.Close()
+		handler := NewHandler(mockDB, mockLogger)
 
-			resp, _ := testutil.TestRequest(t, ts, http.MethodGet, "/ping", "")
-			defer resp.Body.Close()
+		mockDB.EXPECT().Ping(gomock.Any()).Return(assert.AnError).Times(1)
+		mockLogger.EXPECT().Error("Database connection failed: %v", assert.AnError).Times(1)
 
-			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode)
-		})
-	}
+		req := httptest.NewRequest("GET", "/ping", nil)
+		w := httptest.NewRecorder()
+
+		pingHandler := handler.PingHandler()
+		pingHandler(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}
+
+func TestHandler_Integration(t *testing.T) {
+	t.Run("handler lifecycle", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockDB := NewMockDBPinger(ctrl)
+		mockLogger := NewMockPingLogger(ctrl)
+
+		handler := NewHandler(mockDB, mockLogger)
+
+		mockDB.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		w := httptest.NewRecorder()
+
+		pingHandler := handler.PingHandler()
+		pingHandler(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("handler with context", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockDB := NewMockDBPinger(ctrl)
+		mockLogger := NewMockPingLogger(ctrl)
+
+		handler := NewHandler(mockDB, mockLogger)
+
+		mockDB.EXPECT().Ping(gomock.Any()).Return(nil).Times(1)
+
+		ctx := context.Background()
+		req := httptest.NewRequest("GET", "/ping", nil).WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		pingHandler := handler.PingHandler()
+		pingHandler(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 }
