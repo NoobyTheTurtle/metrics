@@ -139,7 +139,9 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 	tests := []struct {
 		name           string
 		mockData       map[string]any
+		mockError      error
 		expectedResult map[string]float64
+		expectedError  bool
 	}{
 		{
 			name: "get all gauges",
@@ -148,15 +150,19 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 				"gauge:metric2":   10.1,
 				"counter:metric3": 5,
 			},
+			mockError: nil,
 			expectedResult: map[string]float64{
 				"metric1": 42.5,
 				"metric2": 10.1,
 			},
+			expectedError: false,
 		},
 		{
 			name:           "empty storage",
 			mockData:       map[string]any{},
+			mockError:      nil,
 			expectedResult: map[string]float64{},
+			expectedError:  false,
 		},
 		{
 			name: "only counters",
@@ -164,7 +170,9 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 				"counter:metric1": 5,
 				"counter:metric2": 10,
 			},
+			mockError:      nil,
 			expectedResult: map[string]float64{},
+			expectedError:  false,
 		},
 		{
 			name: "with invalid gauge value",
@@ -172,9 +180,18 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 				"gauge:metric1":     42.5,
 				"gauge:invalidType": "not a number",
 			},
+			mockError: nil,
 			expectedResult: map[string]float64{
 				"metric1": 42.5,
 			},
+			expectedError: false,
+		},
+		{
+			name:           "storage error",
+			mockData:       nil,
+			mockError:      errors.New("storage error"),
+			expectedResult: nil,
+			expectedError:  true,
 		},
 	}
 
@@ -186,7 +203,7 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
 				GetAll(gomock.Any()).
-				Return(tt.mockData, nil)
+				Return(tt.mockData, tt.mockError)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
@@ -195,12 +212,16 @@ func TestMetricStorage_GetAllGauges(t *testing.T) {
 			ctx := context.Background()
 			result, err := ms.GetAllGauges(ctx)
 
-			assert.NoError(t, err)
-			assert.Equal(t, len(tt.expectedResult), len(result))
-			for k, v := range tt.expectedResult {
-				resultValue, exists := result[k]
-				assert.True(t, exists)
-				assert.Equal(t, v, resultValue)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, len(tt.expectedResult), len(result))
+				for k, v := range tt.expectedResult {
+					resultValue, exists := result[k]
+					assert.True(t, exists)
+					assert.Equal(t, v, resultValue)
+				}
 			}
 		})
 	}
@@ -312,12 +333,23 @@ func TestMetricStorage_UpdateCounter(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name:          "update counter with conversion error",
+			name:          "update counter with conversion error on set",
 			metricName:    "test",
 			value:         5,
 			mockGetValue:  int64(10),
 			mockGetFound:  true,
 			mockSetReturn: "not a number",
+			mockSetError:  nil,
+			expectedValue: 0,
+			expectedError: true,
+		},
+		{
+			name:          "update counter with conversion error on get",
+			metricName:    "test",
+			value:         5,
+			mockGetValue:  "not a number",
+			mockGetFound:  true,
+			mockSetReturn: nil,
 			mockSetError:  nil,
 			expectedValue: 0,
 			expectedError: true,
@@ -330,20 +362,28 @@ func TestMetricStorage_UpdateCounter(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockStorage := NewMockStorage(ctrl)
-			mockStorage.EXPECT().
-				Get(gomock.Any(), addPrefix(tt.metricName, CounterPrefix)).
-				Return(tt.mockGetValue, tt.mockGetFound)
-
-			valueToSet := tt.value
 			if tt.mockGetFound {
+				mockStorage.EXPECT().
+					Get(gomock.Any(), addPrefix(tt.metricName, CounterPrefix)).
+					Return(tt.mockGetValue, tt.mockGetFound)
+
+				valueToSet := tt.value
 				if current, ok := tt.mockGetValue.(int64); ok {
 					valueToSet += current
-				}
-			}
 
-			mockStorage.EXPECT().
-				Set(gomock.Any(), addPrefix(tt.metricName, CounterPrefix), valueToSet).
-				Return(tt.mockSetReturn, tt.mockSetError)
+					mockStorage.EXPECT().
+						Set(gomock.Any(), addPrefix(tt.metricName, CounterPrefix), valueToSet).
+						Return(tt.mockSetReturn, tt.mockSetError)
+				}
+			} else {
+				mockStorage.EXPECT().
+					Get(gomock.Any(), addPrefix(tt.metricName, CounterPrefix)).
+					Return(tt.mockGetValue, tt.mockGetFound)
+
+				mockStorage.EXPECT().
+					Set(gomock.Any(), addPrefix(tt.metricName, CounterPrefix), tt.value).
+					Return(tt.mockSetReturn, tt.mockSetError)
+			}
 
 			ms := &MetricStorage{
 				storage: mockStorage,
@@ -362,11 +402,120 @@ func TestMetricStorage_UpdateCounter(t *testing.T) {
 	}
 }
 
+func TestMetricStorage_UpdateCounter_WithDB(t *testing.T) {
+	tests := []struct {
+		name                 string
+		metricName           string
+		value                int64
+		beginTxError         error
+		updateCounterError   error
+		commitError          error
+		rollbackError        error
+		updateCounterStorage func(ctrl *gomock.Controller) UpdateCounterStorage
+		expectedError        bool
+	}{
+		{
+			name:               "begin transaction error",
+			metricName:         "test_counter",
+			value:              10,
+			beginTxError:       errors.New("begin tx error"),
+			updateCounterError: nil,
+			commitError:        nil,
+			rollbackError:      nil,
+			updateCounterStorage: func(ctrl *gomock.Controller) UpdateCounterStorage {
+				return NewMockStorage(ctrl)
+			},
+			expectedError: true,
+		},
+		{
+			name:               "update counter error",
+			metricName:         "test_counter",
+			value:              10,
+			beginTxError:       nil,
+			updateCounterError: errors.New("update counter error"),
+			commitError:        nil,
+			rollbackError:      nil,
+			updateCounterStorage: func(ctrl *gomock.Controller) UpdateCounterStorage {
+				mockTx := NewMockTransactionalStorage(ctrl)
+				mockTx.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, false)
+				mockTx.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("update counter error"))
+				mockTx.EXPECT().Rollback().Return(nil)
+				return mockTx
+			},
+			expectedError: true,
+		},
+		{
+			name:               "rollback error",
+			metricName:         "test_counter",
+			value:              10,
+			beginTxError:       nil,
+			updateCounterError: errors.New("update counter error"),
+			commitError:        nil,
+			rollbackError:      errors.New("rollback error"),
+			updateCounterStorage: func(ctrl *gomock.Controller) UpdateCounterStorage {
+				mockTx := NewMockTransactionalStorage(ctrl)
+				mockTx.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, false)
+				mockTx.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("update counter error"))
+				mockTx.EXPECT().Rollback().Return(errors.New("rollback error"))
+				return mockTx
+			},
+			expectedError: true,
+		},
+		{
+			name:               "commit error",
+			metricName:         "test_counter",
+			value:              10,
+			beginTxError:       nil,
+			updateCounterError: nil,
+			commitError:        errors.New("commit error"),
+			rollbackError:      nil,
+			updateCounterStorage: func(ctrl *gomock.Controller) UpdateCounterStorage {
+				mockTx := NewMockTransactionalStorage(ctrl)
+				mockTx.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, false)
+				mockTx.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any()).Return(int64(10), nil)
+				mockTx.EXPECT().Commit().Return(errors.New("commit error"))
+				return mockTx
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockDBStorage := NewMockDatabaseStorage(ctrl)
+			if tt.beginTxError != nil {
+				mockDBStorage.EXPECT().BeginTransaction(gomock.Any()).Return(nil, tt.beginTxError)
+			} else {
+				storage := tt.updateCounterStorage(ctrl)
+				mockDBStorage.EXPECT().BeginTransaction(gomock.Any()).Return(storage.(TransactionalStorage), nil)
+			}
+
+			ms := &MetricStorage{
+				dbStorage: mockDBStorage,
+			}
+
+			ctx := context.Background()
+			_, err := ms.UpdateCounter(ctx, tt.metricName, tt.value)
+
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestMetricStorage_GetAllCounters(t *testing.T) {
 	tests := []struct {
 		name           string
 		mockData       map[string]any
+		mockError      error
 		expectedResult map[string]int64
+		expectedError  bool
 	}{
 		{
 			name: "get all counters",
@@ -375,15 +524,19 @@ func TestMetricStorage_GetAllCounters(t *testing.T) {
 				"counter:metric2": int64(10),
 				"gauge:metric3":   42.5,
 			},
+			mockError: nil,
 			expectedResult: map[string]int64{
 				"metric1": 42,
 				"metric2": 10,
 			},
+			expectedError: false,
 		},
 		{
 			name:           "empty storage",
 			mockData:       map[string]any{},
+			mockError:      nil,
 			expectedResult: map[string]int64{},
+			expectedError:  false,
 		},
 		{
 			name: "only gauges",
@@ -391,7 +544,9 @@ func TestMetricStorage_GetAllCounters(t *testing.T) {
 				"gauge:metric1": 42.5,
 				"gauge:metric2": 10.1,
 			},
+			mockError:      nil,
 			expectedResult: map[string]int64{},
+			expectedError:  false,
 		},
 		{
 			name: "with invalid counter value",
@@ -399,9 +554,18 @@ func TestMetricStorage_GetAllCounters(t *testing.T) {
 				"counter:metric1":     int64(42),
 				"counter:invalidType": "not a number",
 			},
+			mockError: nil,
 			expectedResult: map[string]int64{
 				"metric1": 42,
 			},
+			expectedError: false,
+		},
+		{
+			name:           "storage error",
+			mockData:       nil,
+			mockError:      errors.New("storage error"),
+			expectedResult: nil,
+			expectedError:  true,
 		},
 	}
 
@@ -413,7 +577,7 @@ func TestMetricStorage_GetAllCounters(t *testing.T) {
 			mockStorage := NewMockStorage(ctrl)
 			mockStorage.EXPECT().
 				GetAll(gomock.Any()).
-				Return(tt.mockData, nil)
+				Return(tt.mockData, tt.mockError)
 
 			ms := &MetricStorage{
 				storage: mockStorage,
@@ -422,12 +586,16 @@ func TestMetricStorage_GetAllCounters(t *testing.T) {
 			ctx := context.Background()
 			result, err := ms.GetAllCounters(ctx)
 
-			assert.NoError(t, err)
-			assert.Equal(t, len(tt.expectedResult), len(result))
-			for k, v := range tt.expectedResult {
-				resultValue, exists := result[k]
-				assert.True(t, exists)
-				assert.Equal(t, v, resultValue)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, len(tt.expectedResult), len(result))
+				for k, v := range tt.expectedResult {
+					resultValue, exists := result[k]
+					assert.True(t, exists)
+					assert.Equal(t, v, resultValue)
+				}
 			}
 		})
 	}

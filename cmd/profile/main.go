@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -21,32 +20,42 @@ const (
 )
 
 func main() {
+	if err := run(); err != nil {
+		handleError(err)
+	}
+}
+
+func handleError(err error) {
+	fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	os.Exit(1)
+}
+
+func run() error {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: go run cmd/profile/main.go [base|result]")
-		os.Exit(1)
+		return fmt.Errorf("usage: go run cmd/profile/main.go [base|result]")
 	}
 
 	command := os.Args[1]
 
 	switch command {
 	case "base":
-		captureProfile("base.pprof")
+		return captureProfile("base.pprof")
 	case "result":
-		captureProfile("result.pprof")
+		return captureProfile("result.pprof")
 	default:
-		log.Fatalf("Unknown command: %s", command)
+		return fmt.Errorf("unknown command: %s", command)
 	}
 }
 
-func captureProfile(filename string) {
+func captureProfile(filename string) error {
 	fmt.Printf("Capturing %s...\n", filename)
 
 	if err := os.MkdirAll(profilesDir, 0o755); err != nil {
-		log.Fatalf("Failed to create profiles directory: %v", err)
+		return fmt.Errorf("failed to create profiles directory: %w", err)
 	}
 
 	if !isServerReady() {
-		log.Fatal("Server not available. Please start server first.")
+		return fmt.Errorf("server not available. Please start server first")
 	}
 
 	fmt.Println("Starting load...")
@@ -56,11 +65,13 @@ func captureProfile(filename string) {
 	fmt.Printf("Capturing %s...\n", filename)
 
 	if err := saveProfile(filename); err != nil {
-		log.Fatalf("Failed to save profile: %v", err)
+		return fmt.Errorf("failed to save profile: %w", err)
 	}
 
 	time.Sleep(5 * time.Second)
 	fmt.Printf("Profile saved to %s/%s\n", profilesDir, filename)
+
+	return nil
 }
 
 func generateLoad(duration time.Duration) {

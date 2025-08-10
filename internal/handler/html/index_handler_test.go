@@ -1,16 +1,16 @@
 package html
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/NoobyTheTurtle/metrics/internal/testutil"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-
-	"github.com/NoobyTheTurtle/metrics/internal/testutil"
 )
 
 func Test_mapGauges(t *testing.T) {
@@ -152,6 +152,29 @@ func Test_handler_indexHandler(t *testing.T) {
 			},
 			expectedStatusCode: http.StatusMethodNotAllowed,
 			expectedContains:   nil,
+		},
+		{
+			name:   "error getting gauges",
+			method: http.MethodGet,
+			url:    "/",
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
+				mockStorage := NewMockHandlerStorage(ctrl)
+				mockStorage.EXPECT().GetAllGauges(gomock.Any()).Return(nil, errors.New("test error"))
+				return mockStorage
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name:   "error getting counters",
+			method: http.MethodGet,
+			url:    "/",
+			setupMocks: func(ctrl *gomock.Controller) *MockHandlerStorage {
+				mockStorage := NewMockHandlerStorage(ctrl)
+				mockStorage.EXPECT().GetAllGauges(gomock.Any()).Return(map[string]float64{}, nil)
+				mockStorage.EXPECT().GetAllCounters(gomock.Any()).Return(nil, errors.New("test error"))
+				return mockStorage
+			},
+			expectedStatusCode: http.StatusInternalServerError,
 		},
 	}
 
