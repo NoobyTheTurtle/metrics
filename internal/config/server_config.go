@@ -12,6 +12,7 @@ type ServerConfig struct {
 	LogLevel      string `env:"LOG_LEVEL"`
 	AppEnv        string `env:"APP_ENV"`
 	Key           string `env:"KEY"`
+	CryptoKey     string `env:"CRYPTO_KEY"`
 
 	StoreInterval   uint   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
@@ -31,6 +32,7 @@ func NewServerConfig(configPath string) (*ServerConfig, error) {
 		LogLevel:      defaultConfig.LogLevel,
 		AppEnv:        defaultConfig.AppEnv,
 		Key:           defaultConfig.Key,
+		CryptoKey:     defaultConfig.CryptoKey,
 
 		StoreInterval:   defaultConfig.StoreInterval,
 		FileStoragePath: defaultConfig.FileStoragePath,
@@ -57,6 +59,7 @@ func (c *ServerConfig) parseFlags() error {
 	flag.BoolVar(&c.Restore, "r", c.Restore, "Restore metrics from file storage")
 	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "PostgreSQL DSN")
 	flag.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
+	flag.StringVar(&c.CryptoKey, "crypto-key", c.CryptoKey, "Path to private key file for decryption")
 
 	flag.Parse()
 

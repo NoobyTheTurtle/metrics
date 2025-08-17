@@ -28,3 +28,6 @@ tmp/
 .idea
 .vscode
 .history
+
+# Key files
+*.pem

@@ -20,6 +20,7 @@ type Router struct {
 	router       chi.Router
 	storage      MetricStorage
 	logger       RouterLogger
+	decrypter    Decrypter
 	pingHandler  *ping.Handler
 	htmlHandler  *html.Handler
 	plainHandler *plain.Handler
@@ -27,25 +28,26 @@ type Router struct {
 	serverKey    string
 }
 
-func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, serverKey string) *Router {
+func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, serverKey string, decrypter Decrypter) *Router {
 	r := &Router{
 		router:    chi.NewRouter(),
 		storage:   storage,
 		logger:    logger,
 		serverKey: serverKey,
+		decrypter: decrypter,
 	}
 
 	r.htmlHandler = html.NewHandler(storage)
 	r.plainHandler = plain.NewHandler(storage)
 	r.jsonHandler = json.NewHandler(storage)
 	r.pingHandler = ping.NewHandler(dbClient, logger)
-	r.setupMiddleware()
+	r.setupMiddlewares()
 	r.setupRoutes()
 
 	return r
 }
 
-func (r *Router) setupMiddleware() {
+func (r *Router) setupMiddlewares() {
 	r.router.Use(middleware.LogMiddleware(r.logger))
 	r.router.Mount("/debug", chiMiddleware.Profiler())
 }
@@ -71,6 +73,7 @@ func (r *Router) setupRoutes() {
 	// JSON handlers
 	r.router.Group(func(router chi.Router) {
 		router.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
+		router.Use(middleware.DecryptMiddleware(r.decrypter))
 		router.Use(middleware.GzipMiddleware)
 		router.Use(middleware.HashValidator(r.serverKey, r.logger))
 		router.Use(middleware.HashAppender(r.serverKey, r.logger))
