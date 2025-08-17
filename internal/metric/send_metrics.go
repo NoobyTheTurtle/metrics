@@ -117,8 +117,19 @@ func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error compressing data: %w", err)
 	}
 
+	var encryptedData []byte
+	if m.encrypter != nil {
+		encryptedData, err = m.encrypter.Encrypt(compressedData)
+		if err != nil {
+			m.logger.Warn("Failed to encrypt data: %v", err)
+			encryptedData = compressedData
+		}
+	} else {
+		encryptedData = compressedData
+	}
+
 	url := fmt.Sprintf("%s/updates/", m.serverURL)
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(compressedData))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(encryptedData))
 	if err != nil {
 		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error creating request: %w", err)
 	}

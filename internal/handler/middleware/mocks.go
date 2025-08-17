@@ -72,3 +72,42 @@ func (mr *MockMiddlewareLoggerMockRecorder) Info(format any, args ...any) *gomoc
 	varargs := append([]any{format}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockMiddlewareLogger)(nil).Info), varargs...)
 }
+
+// MockDecrypter is a mock of Decrypter interface.
+type MockDecrypter struct {
+	ctrl     *gomock.Controller
+	recorder *MockDecrypterMockRecorder
+	isgomock struct{}
+}
+
+// MockDecrypterMockRecorder is the mock recorder for MockDecrypter.
+type MockDecrypterMockRecorder struct {
+	mock *MockDecrypter
+}
+
+// NewMockDecrypter creates a new mock instance.
+func NewMockDecrypter(ctrl *gomock.Controller) *MockDecrypter {
+	mock := &MockDecrypter{ctrl: ctrl}
+	mock.recorder = &MockDecrypterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDecrypter) EXPECT() *MockDecrypterMockRecorder {
+	return m.recorder
+}
+
+// Decrypt mocks base method.
+func (m *MockDecrypter) Decrypt(data []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Decrypt", data)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Decrypt indicates an expected call of Decrypt.
+func (mr *MockDecrypterMockRecorder) Decrypt(data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Decrypt", reflect.TypeOf((*MockDecrypter)(nil).Decrypt), data)
+}

@@ -22,3 +22,6 @@ key: ""
 
 # Rate limit for requests
 rate_limit: 1
+
+# Crypto key for encryption/decryption
+crypto_key: ""

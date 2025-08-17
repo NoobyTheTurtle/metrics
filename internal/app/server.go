@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/NoobyTheTurtle/metrics/internal/config"
+	"github.com/NoobyTheTurtle/metrics/internal/cryptoutil"
 	"github.com/NoobyTheTurtle/metrics/internal/database/postgres"
 	"github.com/NoobyTheTurtle/metrics/internal/handler"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
@@ -40,7 +41,15 @@ func StartServer(ctx context.Context) error {
 		return fmt.Errorf("app.StartServer: failed to create metric storage: %w", err)
 	}
 
-	router := handler.NewRouter(metricStorage, log, dbClient, c.Key)
+	var decrypter handler.Decrypter
+	if c.CryptoKey != "" {
+		decrypter, err = cryptoutil.NewPrivateKeyProvider(c.CryptoKey)
+		if err != nil {
+			return fmt.Errorf("app.StartServer: failed to create decrypter: %w", err)
+		}
+	}
+
+	router := handler.NewRouter(metricStorage, log, dbClient, c.Key, decrypter)
 
 	log.Info("Starting server on %s", c.ServerAddress)
 	return http.ListenAndServe(c.ServerAddress, router.Handler())
@@ -65,7 +74,6 @@ func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sqlx.DB,
 		c.Restore,
 		db,
 	)
-
 	if err != nil {
 		return nil, err
 	}

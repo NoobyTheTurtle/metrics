@@ -23,6 +23,7 @@ type DefaultConfig struct {
 
 	Key       string `yaml:"key"`
 	RateLimit uint   `yaml:"rate_limit"`
+	CryptoKey string `yaml:"crypto_key"`
 }
 
 func NewDefaultConfig(configPath string) (*DefaultConfig, error) {

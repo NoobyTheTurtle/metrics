@@ -1,10 +1,12 @@
 package app
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/NoobyTheTurtle/metrics/internal/collector"
 	"github.com/NoobyTheTurtle/metrics/internal/config"
+	"github.com/NoobyTheTurtle/metrics/internal/cryptoutil"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/NoobyTheTurtle/metrics/internal/metric"
 	"github.com/NoobyTheTurtle/metrics/internal/reporter"
@@ -24,7 +26,15 @@ func StartAgent() error {
 	}
 	defer l.Sync()
 
-	metrics := metric.NewMetrics(c.ServerAddress, l, !isDev, c.Key)
+	var encrypter metric.Encrypter
+	if c.CryptoKey != "" {
+		encrypter, err = cryptoutil.NewPublicKeyProvider(c.CryptoKey)
+		if err != nil {
+			return fmt.Errorf("app.StartAgent: failed to create encrypter: %w", err)
+		}
+	}
+
+	metrics := metric.NewMetrics(c.ServerAddress, l, !isDev, c.Key, encrypter)
 
 	metricCollector := collector.NewCollector(metrics, l, c.PollInterval)
 	gopsutilCollector := collector.NewGopsutilCollector(metrics, l, c.PollInterval)
