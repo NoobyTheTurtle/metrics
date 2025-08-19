@@ -91,12 +91,12 @@ build-all: build-agent build-server build-staticlint
 .PHONY: run-agent
 run-agent: build-agent
 	@echo "Running agent..."
-	@$(AGENT_BIN)
+	@$(AGENT_BIN) -c configs/agent.json
 
 .PHONY: run-server
 run-server: build-server
 	@echo "Running server..."
-	@DATABASE_DSN="$(DATABASE_DSN)" $(SERVER_BIN)
+	@DATABASE_DSN="$(DATABASE_DSN)" $(SERVER_BIN) -c configs/server.json
 
 .PHONY: clean
 clean:

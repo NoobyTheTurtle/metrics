@@ -13,7 +13,7 @@ import (
 )
 
 func StartAgent() error {
-	c, err := config.NewAgentConfig("configs/default.yml")
+	c, err := config.NewAgentConfig()
 	if err != nil {
 		return err
 	}

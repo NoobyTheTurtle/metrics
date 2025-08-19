@@ -1,0 +1,10 @@
+{
+    "server_address": "localhost:8080",
+    "log_level": "info",
+    "app_env": "development",
+    "poll_interval": 2,
+    "report_interval": 10,
+    "key": "",
+    "rate_limit": 1,
+    "crypto_key": ""
+}

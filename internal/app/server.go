@@ -17,7 +17,7 @@ import (
 )
 
 func StartServer(ctx context.Context) error {
-	c, err := config.NewServerConfig("configs/default.yml")
+	c, err := config.NewServerConfig()
 	if err != nil {
 		return err
 	}
