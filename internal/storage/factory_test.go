@@ -7,6 +7,7 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/file"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/memory"
+	"github.com/NoobyTheTurtle/metrics/internal/storage/postgres"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
@@ -102,4 +103,30 @@ func TestStorageTypeConstants(t *testing.T) {
 	assert.Equal(t, StorageType("memory"), MemoryStorage)
 	assert.Equal(t, StorageType("file"), FileStorage)
 	assert.Equal(t, StorageType("postgres"), PostgresStorage)
+}
+
+func TestCreatePostgresStorage_Success(t *testing.T) {
+	db := &sqlx.DB{}
+
+	storage := CreatePostgresStorage(db)
+
+	assert.NotNil(t, storage)
+	assert.IsType(t, (*postgres.PostgresStorage)(nil), storage)
+}
+
+func TestCreatePostgresStorage_NilClient_Error(t *testing.T) {
+	storage := CreatePostgresStorage(nil)
+
+	assert.NotNil(t, storage)
+	assert.IsType(t, (*postgres.PostgresStorage)(nil), storage)
+}
+
+func TestCreatePostgresStorage_Integration(t *testing.T) {
+	db := &sqlx.DB{}
+	storage := CreatePostgresStorage(db)
+
+	metricStorage := adapter.NewDatabaseStorage(storage)
+
+	assert.NotNil(t, metricStorage)
+	assert.IsType(t, &adapter.MetricStorage{}, metricStorage)
 }

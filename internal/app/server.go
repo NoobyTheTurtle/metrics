@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/NoobyTheTurtle/metrics/internal/config"
 	"github.com/NoobyTheTurtle/metrics/internal/cryptoutil"
@@ -17,6 +21,9 @@ import (
 )
 
 func StartServer(ctx context.Context) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	defer cancel()
+
 	c, err := config.NewServerConfig()
 	if err != nil {
 		return err
@@ -36,7 +43,7 @@ func StartServer(ctx context.Context) error {
 	}
 	defer dbClient.Close()
 
-	metricStorage, err := initMetricStorage(ctx, c, dbClient.DB, log)
+	metricStorage, persisterDone, err := initMetricStorage(ctx, c, dbClient.DB, log)
 	if err != nil {
 		return fmt.Errorf("app.StartServer: failed to create metric storage: %w", err)
 	}
@@ -51,11 +58,51 @@ func StartServer(ctx context.Context) error {
 
 	router := handler.NewRouter(metricStorage, log, dbClient, c.Key, decrypter)
 
-	log.Info("Starting server on %s", c.ServerAddress)
-	return http.ListenAndServe(c.ServerAddress, router.Handler())
+	server := &http.Server{
+		Addr:    c.ServerAddress,
+		Handler: router.Handler(),
+	}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		log.Info("Starting server on %s", c.ServerAddress)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			serverErr <- err
+		}
+	}()
+
+	select {
+	case err := <-serverErr:
+		return fmt.Errorf("server error: %w", err)
+	case <-ctx.Done():
+		log.Info("Received shutdown signal, starting graceful shutdown...")
+	}
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
+	log.Info("Shutting down HTTP server...")
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Error("Error during HTTP server shutdown: %v", err)
+	} else {
+		log.Info("HTTP server stopped")
+	}
+
+	if persisterDone != nil {
+		log.Info("Waiting for persister to finish...")
+		select {
+		case <-persisterDone:
+			log.Info("Persister finished")
+		case <-shutdownCtx.Done():
+			log.Error("Timeout waiting for persister to finish")
+		}
+	}
+
+	log.Info("Graceful shutdown completed")
+	return nil
 }
 
-func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sqlx.DB, log *logger.ZapLogger) (*adapter.MetricStorage, error) {
+func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sqlx.DB, log *logger.ZapLogger) (*adapter.MetricStorage, chan struct{}, error) {
 	var storageType storage.StorageType
 
 	if c.DatabaseDSN != "" && db != nil {
@@ -75,13 +122,18 @@ func initMetricStorage(ctx context.Context, c *config.ServerConfig, db *sqlx.DB,
 		db,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	var persisterDone chan struct{}
 	if c.StoreInterval > 0 && storageType == storage.FileStorage {
+		persisterDone = make(chan struct{})
 		p := persister.NewPersister(metricStorage, log, c.StoreInterval)
-		go p.Run(ctx)
+		go func() {
+			defer close(persisterDone)
+			p.Run(ctx)
+		}()
 	}
 
-	return metricStorage, nil
+	return metricStorage, persisterDone, nil
 }

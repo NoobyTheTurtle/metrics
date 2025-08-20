@@ -13,7 +13,7 @@ type CollectorLogger interface {
 
 type GopsutilMetrics interface {
 	CollectGopsutilMetrics() error
-	InitGomutiMetrics(pollInterval time.Duration) error
+	InitGopsutilMetrics(pollInterval time.Duration) error
 }
 
 type MetricsCollector interface {
@@ -21,5 +21,7 @@ type MetricsCollector interface {
 	UpdateMetrics()
 }
 
-var _ CollectorLogger = (*logger.ZapLogger)(nil)
-var _ MetricsCollector = (*metric.Metrics)(nil)
+var (
+	_ CollectorLogger  = (*logger.ZapLogger)(nil)
+	_ MetricsCollector = (*metric.Metrics)(nil)
+)

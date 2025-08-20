@@ -8,7 +8,7 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 )
 
-func (m *Metrics) InitGomutiMetrics(pollInterval time.Duration) error {
+func (m *Metrics) InitGopsutilMetrics(pollInterval time.Duration) error {
 	_, err := cpu.Percent(pollInterval, true)
 	return err
 }
