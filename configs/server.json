@@ -1,0 +1,11 @@
+{
+    "server_address": "localhost:8080",
+    "log_level": "info",
+    "app_env": "development",
+    "key": "",
+    "crypto_key": "",
+    "store_interval": 300,
+    "file_storage_path": "tmp/metrics-db.json",
+    "restore": false,
+    "database_dsn": ""
+}

@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/NoobyTheTurtle/metrics/internal/hash"
 	"github.com/NoobyTheTurtle/metrics/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -298,4 +301,438 @@ func TestCompressJSON(t *testing.T) {
 			assert.Equal(t, tt.input, decompressed)
 		})
 	}
+}
+
+func TestSendMetricsBatch_Success(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, "gzip", r.Header.Get("Content-Encoding"))
+		assert.Equal(t, "gzip", r.Header.Get("Accept-Encoding"))
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/updates/", r.URL.Path)
+
+		reader, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+		defer reader.Close()
+
+		body, err := io.ReadAll(reader)
+		require.NoError(t, err)
+
+		var receivedMetrics model.Metrics
+		err = json.Unmarshal(body, &receivedMetrics)
+		require.NoError(t, err)
+		assert.Len(t, receivedMetrics, 1)
+
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_EmptyBatch(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reader, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+		defer reader.Close()
+
+		body, err := io.ReadAll(reader)
+		require.NoError(t, err)
+
+		var receivedMetrics model.Metrics
+		err = json.Unmarshal(body, &receivedMetrics)
+		require.NoError(t, err)
+		assert.Len(t, receivedMetrics, 0)
+
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+	}
+
+	err := metrics.SendMetricsBatch(model.Metrics{})
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_NetworkError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: "http://invalid-url-that-does-not-exist.local",
+		logger:    mockLogger,
+		client:    &http.Client{Timeout: 1 * time.Millisecond},
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "error sending request")
+}
+
+func TestSendMetricsBatch_InvalidResponse(t *testing.T) {
+	tests := []struct {
+		name           string
+		statusCode     int
+		responseBody   string
+		contentType    string
+		expectGzipBody bool
+	}{
+		{
+			name:         "bad request",
+			statusCode:   http.StatusBadRequest,
+			responseBody: "Bad Request",
+			contentType:  "text/plain",
+		},
+		{
+			name:         "internal server error",
+			statusCode:   http.StatusInternalServerError,
+			responseBody: "Internal Server Error",
+			contentType:  "text/plain",
+		},
+		{
+			name:           "service unavailable with gzip",
+			statusCode:     http.StatusServiceUnavailable,
+			responseBody:   "Service Unavailable",
+			contentType:    "text/plain",
+			expectGzipBody: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", tt.contentType)
+
+				if tt.expectGzipBody {
+					w.Header().Set("Content-Encoding", "gzip")
+
+					var buf bytes.Buffer
+					gzWriter := gzip.NewWriter(&buf)
+					gzWriter.Write([]byte(tt.responseBody))
+					gzWriter.Close()
+
+					w.WriteHeader(tt.statusCode)
+					w.Write(buf.Bytes())
+				} else {
+					w.WriteHeader(tt.statusCode)
+					w.Write([]byte(tt.responseBody))
+				}
+			}))
+			defer server.Close()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			mockLogger := NewMockMetricsLogger(ctrl)
+
+			metrics := &Metrics{
+				serverURL: server.URL,
+				logger:    mockLogger,
+				client:    &http.Client{},
+			}
+
+			testMetrics := model.Metrics{
+				{
+					ID:    "test",
+					MType: Gauge,
+					Value: func() *float64 { v := 1.5; return &v }(),
+				},
+			}
+
+			err := metrics.SendMetricsBatch(testMetrics)
+
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("server returned status code %d", tt.statusCode))
+			assert.Contains(t, err.Error(), tt.responseBody)
+		})
+	}
+}
+
+func TestSendMetricsBatch_WithGzip(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "gzip", r.Header.Get("Content-Encoding"))
+		assert.Equal(t, "gzip", r.Header.Get("Accept-Encoding"))
+
+		reader, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+		defer reader.Close()
+
+		body, err := io.ReadAll(reader)
+		require.NoError(t, err)
+
+		var receivedMetrics model.Metrics
+		err = json.Unmarshal(body, &receivedMetrics)
+		require.NoError(t, err)
+		assert.Len(t, receivedMetrics, 2)
+
+		w.Header().Set("Content-Encoding", "gzip")
+		var buf bytes.Buffer
+		gzWriter := gzip.NewWriter(&buf)
+		gzWriter.Write([]byte("OK"))
+		gzWriter.Close()
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(buf.Bytes())
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "gauge_test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+		{
+			ID:    "counter_test",
+			MType: Counter,
+			Delta: func() *int64 { v := int64(10); return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_WithHash(t *testing.T) {
+	const testKey = "test-secret-key"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hashHeader := r.Header.Get("HashSHA256")
+		assert.NotEmpty(t, hashHeader)
+
+		reader, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+		defer reader.Close()
+
+		body, err := io.ReadAll(reader)
+		require.NoError(t, err)
+
+		expectedHash, err := hash.CalculateSHA256(body, testKey)
+		require.NoError(t, err)
+		assert.Equal(t, expectedHash, hashHeader)
+
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+		key:       testKey,
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_WithEncryption(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		encryptedBody, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, encryptedBody)
+
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockLogger := NewMockMetricsLogger(ctrl)
+	mockEncrypter := NewMockEncrypter(ctrl)
+
+	mockEncrypter.EXPECT().
+		Encrypt(gomock.Any()).
+		Return([]byte("encrypted_data"), nil).
+		Times(1)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+		encrypter: mockEncrypter,
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_EncryptionFailure(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockLogger := NewMockMetricsLogger(ctrl)
+	mockEncrypter := NewMockEncrypter(ctrl)
+
+	encryptError := assert.AnError
+	mockEncrypter.EXPECT().
+		Encrypt(gomock.Any()).
+		Return(nil, encryptError).
+		Times(1)
+
+	mockLogger.EXPECT().
+		Warn("Failed to encrypt data: %v", encryptError).
+		Times(1)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+		encrypter: mockEncrypter,
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_HashCalculationFailure(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hashHeader := r.Header.Get("HashSHA256")
+		assert.Empty(t, hashHeader)
+
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+		key:       "",
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.NoError(t, err)
+}
+
+func TestSendMetricsBatch_ResponseReadError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Encoding", "gzip")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid gzip data"))
+	}))
+	defer server.Close()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockLogger := NewMockMetricsLogger(ctrl)
+
+	metrics := &Metrics{
+		serverURL: server.URL,
+		logger:    mockLogger,
+		client:    &http.Client{},
+	}
+
+	testMetrics := model.Metrics{
+		{
+			ID:    "test",
+			MType: Gauge,
+			Value: func() *float64 { v := 1.5; return &v }(),
+		},
+	}
+
+	err := metrics.SendMetricsBatch(testMetrics)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "could not read body")
 }

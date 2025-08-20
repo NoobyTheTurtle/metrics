@@ -42,6 +42,7 @@ func TestNewServerConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &ServerConfig{
+				ConfigPath:    "../../configs/server.json",
 				ServerAddress: "localhost:8080",
 				LogLevel:      "info",
 				AppEnv:        "development",
@@ -52,6 +53,7 @@ func TestNewServerConfig(t *testing.T) {
 			name: "command line arguments",
 			args: []string{"test", "-a", "localhost:9090"},
 			expected: &ServerConfig{
+				ConfigPath:    "../../configs/server.json",
 				ServerAddress: "localhost:9090",
 				LogLevel:      "info",
 				AppEnv:        "development",
@@ -62,6 +64,7 @@ func TestNewServerConfig(t *testing.T) {
 			name: "database dsn command line argument",
 			args: []string{"test", "-d", "postgres://testuser:testpass@testhost:5432/testdb?sslmode=disable"},
 			expected: &ServerConfig{
+				ConfigPath:    "../../configs/server.json",
 				ServerAddress: "localhost:8080",
 				LogLevel:      "info",
 				AppEnv:        "development",
@@ -78,6 +81,7 @@ func TestNewServerConfig(t *testing.T) {
 				"DATABASE_DSN": "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
 			},
 			expected: &ServerConfig{
+				ConfigPath:    "../../configs/server.json",
 				ServerAddress: "localhost:7070",
 				LogLevel:      "debug",
 				AppEnv:        "test",
@@ -94,6 +98,7 @@ func TestNewServerConfig(t *testing.T) {
 				"DATABASE_DSN": "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
 			},
 			expected: &ServerConfig{
+				ConfigPath:    "../../configs/server.json",
 				ServerAddress: "localhost:7070",
 				LogLevel:      "debug",
 				AppEnv:        "test",
@@ -110,7 +115,9 @@ func TestNewServerConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testutil.ResetFlags()
-			os.Args = tt.args
+			// Set args with custom config path for tests
+			args := append(tt.args, "-c", "../../configs/server.json")
+			os.Args = args
 
 			for k, v := range tt.envs {
 				os.Setenv(k, v)
@@ -121,13 +128,14 @@ func TestNewServerConfig(t *testing.T) {
 				}
 			}()
 
-			config, err := NewServerConfig("../../configs/default.yml")
+			config, err := NewServerConfig()
 
 			if tt.expectedErrMsg != "" {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.expectedErrMsg)
 			} else {
 				assert.NoError(t, err)
+				assert.Equal(t, tt.expected.ConfigPath, config.ConfigPath)
 				assert.Equal(t, tt.expected.ServerAddress, config.ServerAddress)
 				assert.Equal(t, tt.expected.LogLevel, config.LogLevel)
 				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)

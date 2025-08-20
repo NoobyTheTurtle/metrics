@@ -41,15 +41,6 @@ func TestHashValidator(t *testing.T) {
 			expectedStatus:       http.StatusOK,
 			expectNextCall:       true,
 		},
-		// {
-		// 	name:                 "no hash header - should fail",
-		// 	key:                  secretKey,
-		// 	requestBody:          "test body",
-		// 	provideHeader:        false,
-		// 	calculateDynamicHash: false,
-		// 	expectedStatus:       http.StatusBadRequest,
-		// 	expectNextCall:       false,
-		// },
 		{
 			name:                 "mismatched hash - should fail",
 			key:                  secretKey,
@@ -205,4 +196,136 @@ func TestHashAppender(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHashValidator_MissingKey_PassThrough(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	logger := NewMockMiddlewareLogger(ctrl)
+
+	var nextCalled bool
+	handler := HashValidator("", logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nextCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("test body"))
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.True(t, nextCalled)
+}
+
+func TestHashValidator_InvalidHash_Error(t *testing.T) {
+	secretKey := "testSecret"
+	ctrl := gomock.NewController(t)
+	logger := NewMockMiddlewareLogger(ctrl)
+
+	logger.EXPECT().Info(
+		"Hash mismatch for request from %s for %s. Incoming: %s, Calculated: %s",
+		gomock.Any(),
+		gomock.Any(),
+		gomock.Any(),
+		gomock.Any(),
+	).Times(1)
+
+	var nextCalled bool
+	handler := HashValidator(secretKey, logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nextCalled = true
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("test body"))
+	req.Header.Set("HashSHA256", "invalid-hash")
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	assert.False(t, nextCalled)
+}
+
+func TestHashValidator_MissingHeader_PassThrough(t *testing.T) {
+	secretKey := "testSecret"
+	ctrl := gomock.NewController(t)
+	logger := NewMockMiddlewareLogger(ctrl)
+
+	var nextCalled bool
+	handler := HashValidator(secretKey, logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nextCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("test body"))
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.True(t, nextCalled)
+}
+
+func TestHashAppender_NoKey_PassThrough(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	logger := NewMockMiddlewareLogger(ctrl)
+
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("response body"))
+	})
+
+	handler := HashAppender("", logger)(testHandler)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, "response body", rr.Body.String())
+	assert.Empty(t, rr.Header().Get("HashSHA256"))
+}
+
+func TestHashAppender_ErrorResponse_NoHash(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	logger := NewMockMiddlewareLogger(ctrl)
+
+	errorHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+	})
+
+	handler := HashAppender("secret-key", logger)(errorHandler)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.NotEmpty(t, rr.Header().Get("HashSHA256"))
+}
+
+func TestHashWriter_Methods(t *testing.T) {
+	originalWriter := httptest.NewRecorder()
+	hw := &hashWriter{
+		originalWriter: originalWriter,
+		body:           bytes.NewBuffer([]byte{}),
+		statusCode:     0,
+	}
+
+	t.Run("Write", func(t *testing.T) {
+		data := []byte("test data")
+		n, err := hw.Write(data)
+		assert.NoError(t, err)
+		assert.Equal(t, len(data), n)
+		assert.Equal(t, "test data", hw.body.String())
+	})
+
+	t.Run("Header", func(t *testing.T) {
+		header := hw.Header()
+		assert.Equal(t, originalWriter.Header(), header)
+	})
+
+	t.Run("WriteHeader", func(t *testing.T) {
+		hw.WriteHeader(http.StatusCreated)
+		assert.Equal(t, http.StatusCreated, hw.statusCode)
+	})
 }

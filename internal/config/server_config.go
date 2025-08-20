@@ -3,15 +3,18 @@ package config
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/caarlos0/env/v11"
 )
 
 type ServerConfig struct {
+	ConfigPath    string
 	ServerAddress string `env:"ADDRESS"`
 	LogLevel      string `env:"LOG_LEVEL"`
 	AppEnv        string `env:"APP_ENV"`
 	Key           string `env:"KEY"`
+	CryptoKey     string `env:"CRYPTO_KEY"`
 
 	StoreInterval   uint   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
@@ -20,27 +23,46 @@ type ServerConfig struct {
 	DatabaseDSN string `env:"DATABASE_DSN"`
 }
 
-func NewServerConfig(configPath string) (*ServerConfig, error) {
-	defaultConfig, err := NewDefaultConfig(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("config.NewServerConfig: loading default config from '%s': %w", configPath, err)
-	}
-
+func NewServerConfig() (*ServerConfig, error) {
 	config := &ServerConfig{
-		ServerAddress: defaultConfig.ServerAddress,
-		LogLevel:      defaultConfig.LogLevel,
-		AppEnv:        defaultConfig.AppEnv,
-		Key:           defaultConfig.Key,
-
-		StoreInterval:   defaultConfig.StoreInterval,
-		FileStoragePath: defaultConfig.FileStoragePath,
-		Restore:         defaultConfig.Restore,
-
-		DatabaseDSN: defaultConfig.DatabaseDSN,
+		ConfigPath: "configs/server.json",
 	}
 
 	if err := config.parseFlags(); err != nil {
 		return nil, err
+	}
+
+	defaultConfig, err := NewServerDefaultConfig(config.ConfigPath)
+	if err != nil {
+		return nil, fmt.Errorf("config.NewServerConfig: loading default config from '%s': %w", config.ConfigPath, err)
+	}
+
+	if config.ServerAddress == "" {
+		config.ServerAddress = defaultConfig.ServerAddress
+	}
+	if config.LogLevel == "" {
+		config.LogLevel = defaultConfig.LogLevel
+	}
+	if config.AppEnv == "" {
+		config.AppEnv = defaultConfig.AppEnv
+	}
+	if config.Key == "" {
+		config.Key = defaultConfig.Key
+	}
+	if config.CryptoKey == "" {
+		config.CryptoKey = defaultConfig.CryptoKey
+	}
+	if config.StoreInterval == 0 {
+		config.StoreInterval = defaultConfig.StoreInterval
+	}
+	if config.FileStoragePath == "" {
+		config.FileStoragePath = defaultConfig.FileStoragePath
+	}
+	if !config.Restore {
+		config.Restore = defaultConfig.Restore
+	}
+	if config.DatabaseDSN == "" {
+		config.DatabaseDSN = defaultConfig.DatabaseDSN
 	}
 
 	if err := env.Parse(config); err != nil {
@@ -51,17 +73,24 @@ func NewServerConfig(configPath string) (*ServerConfig, error) {
 }
 
 func (c *ServerConfig) parseFlags() error {
-	flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
-	flag.UintVar(&c.StoreInterval, "i", c.StoreInterval, "Store interval in seconds")
-	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "File storage path")
-	flag.BoolVar(&c.Restore, "r", c.Restore, "Restore metrics from file storage")
-	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "PostgreSQL DSN")
-	flag.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
+	fs := flag.NewFlagSet("server", flag.ContinueOnError)
 
-	flag.Parse()
+	fs.StringVar(&c.ConfigPath, "c", c.ConfigPath, "Path to config file")
+	fs.StringVar(&c.ConfigPath, "config", c.ConfigPath, "Path to config file")
+	fs.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
+	fs.UintVar(&c.StoreInterval, "i", c.StoreInterval, "Store interval in seconds")
+	fs.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "File storage path")
+	fs.BoolVar(&c.Restore, "r", c.Restore, "Restore metrics from file storage")
+	fs.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "PostgreSQL DSN")
+	fs.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
+	fs.StringVar(&c.CryptoKey, "crypto-key", c.CryptoKey, "Path to private key file for decryption")
 
-	if flag.NArg() > 0 {
-		return fmt.Errorf("config.ServerConfig.parseFlags: unknown command line arguments: %v", flag.Args())
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		return fmt.Errorf("config.ServerConfig.parseFlags: %w", err)
+	}
+
+	if fs.NArg() > 0 {
+		return fmt.Errorf("config.ServerConfig.parseFlags: unknown command line arguments: %v", fs.Args())
 	}
 
 	return nil

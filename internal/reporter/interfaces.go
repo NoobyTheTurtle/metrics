@@ -13,5 +13,7 @@ type MetricsReporter interface {
 	SendMetrics()
 }
 
-var _ ReporterLogger = (*logger.ZapLogger)(nil)
-var _ MetricsReporter = (*metric.Metrics)(nil)
+var (
+	_ ReporterLogger  = (*logger.ZapLogger)(nil)
+	_ MetricsReporter = (*metric.Metrics)(nil)
+)

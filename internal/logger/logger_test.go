@@ -81,6 +81,45 @@ func TestZapLogger_Methods(t *testing.T) {
 	})
 }
 
+func TestZapLogger_Warn_Success(t *testing.T) {
+	logger, err := NewZapLogger("debug", true)
+	require.NoError(t, err)
+	require.NotNil(t, logger)
+
+	assert.NotPanics(t, func() {
+		logger.Warn("warn message")
+		logger.Warn("warn message with args: %s, %d", "test", 123)
+	})
+}
+
+func TestZapLogger_Error_Success(t *testing.T) {
+	logger, err := NewZapLogger("debug", true)
+	require.NoError(t, err)
+	require.NotNil(t, logger)
+
+	assert.NotPanics(t, func() {
+		logger.Error("error message")
+		logger.Error("error message with args: %s, %d", "test", 456)
+	})
+}
+
+func TestZapLogger_Fatal_Success(t *testing.T) {
+	logger, err := NewZapLogger("debug", true)
+	require.NoError(t, err)
+	require.NotNil(t, logger)
+
+	assert.NotNil(t, logger.Fatal)
+}
+
+func TestZapLogger_Sync_Success(t *testing.T) {
+	logger, err := NewZapLogger("debug", true)
+	require.NoError(t, err)
+	require.NotNil(t, logger)
+
+	syncErr := logger.Sync()
+	_ = syncErr
+}
+
 func TestZapLogger_Integration(t *testing.T) {
 	logger, err := NewZapLogger("info", false)
 	require.NoError(t, err)

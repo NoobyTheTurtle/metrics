@@ -26,11 +26,21 @@ func (p *Persister) Run(ctx context.Context) {
 	p.logger.Info("Periodic saving enabled with interval %v", p.interval)
 
 	for {
-		<-ticker.C
-		if err := p.storage.SaveToFile(ctx); err != nil {
-			p.logger.Error("Failed to save metrics: %v", err)
-		} else {
-			p.logger.Info("Successfully saved metrics to file")
+		select {
+		case <-ctx.Done():
+			p.logger.Info("Persister shutting down, performing final save...")
+			if err := p.storage.SaveToFile(context.Background()); err != nil {
+				p.logger.Error("Failed to perform final save during shutdown: %v", err)
+			} else {
+				p.logger.Info("Final save completed successfully")
+			}
+			return
+		case <-ticker.C:
+			if err := p.storage.SaveToFile(ctx); err != nil {
+				p.logger.Error("Failed to save metrics: %v", err)
+			} else {
+				p.logger.Info("Successfully saved metrics to file")
+			}
 		}
 	}
 }

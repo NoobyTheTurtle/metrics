@@ -95,18 +95,18 @@ func (mr *MockGopsutilMetricsMockRecorder) CollectGopsutilMetrics() *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectGopsutilMetrics", reflect.TypeOf((*MockGopsutilMetrics)(nil).CollectGopsutilMetrics))
 }
 
-// InitGomutiMetrics mocks base method.
-func (m *MockGopsutilMetrics) InitGomutiMetrics(pollInterval time.Duration) error {
+// InitGopsutilMetrics mocks base method.
+func (m *MockGopsutilMetrics) InitGopsutilMetrics(pollInterval time.Duration) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitGomutiMetrics", pollInterval)
+	ret := m.ctrl.Call(m, "InitGopsutilMetrics", pollInterval)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// InitGomutiMetrics indicates an expected call of InitGomutiMetrics.
-func (mr *MockGopsutilMetricsMockRecorder) InitGomutiMetrics(pollInterval any) *gomock.Call {
+// InitGopsutilMetrics indicates an expected call of InitGopsutilMetrics.
+func (mr *MockGopsutilMetricsMockRecorder) InitGopsutilMetrics(pollInterval any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitGomutiMetrics", reflect.TypeOf((*MockGopsutilMetrics)(nil).InitGomutiMetrics), pollInterval)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitGopsutilMetrics", reflect.TypeOf((*MockGopsutilMetrics)(nil).InitGopsutilMetrics), pollInterval)
 }
 
 // MockMetricsCollector is a mock of MetricsCollector interface.
@@ -147,18 +147,18 @@ func (mr *MockMetricsCollectorMockRecorder) CollectGopsutilMetrics() *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectGopsutilMetrics", reflect.TypeOf((*MockMetricsCollector)(nil).CollectGopsutilMetrics))
 }
 
-// InitGomutiMetrics mocks base method.
-func (m *MockMetricsCollector) InitGomutiMetrics(pollInterval time.Duration) error {
+// InitGopsutilMetrics mocks base method.
+func (m *MockMetricsCollector) InitGopsutilMetrics(pollInterval time.Duration) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitGomutiMetrics", pollInterval)
+	ret := m.ctrl.Call(m, "InitGopsutilMetrics", pollInterval)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// InitGomutiMetrics indicates an expected call of InitGomutiMetrics.
-func (mr *MockMetricsCollectorMockRecorder) InitGomutiMetrics(pollInterval any) *gomock.Call {
+// InitGopsutilMetrics indicates an expected call of InitGopsutilMetrics.
+func (mr *MockMetricsCollectorMockRecorder) InitGopsutilMetrics(pollInterval any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitGomutiMetrics", reflect.TypeOf((*MockMetricsCollector)(nil).InitGomutiMetrics), pollInterval)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitGopsutilMetrics", reflect.TypeOf((*MockMetricsCollector)(nil).InitGopsutilMetrics), pollInterval)
 }
 
 // UpdateMetrics mocks base method.

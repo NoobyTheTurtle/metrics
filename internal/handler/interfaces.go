@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 
+	"github.com/NoobyTheTurtle/metrics/internal/cryptoutil"
 	"github.com/NoobyTheTurtle/metrics/internal/database/postgres"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/html"
 	"github.com/NoobyTheTurtle/metrics/internal/handler/json"
@@ -41,3 +42,10 @@ var (
 	_ DBPinger = (*postgres.PostgresClient)(nil)
 	_ DBPinger = (*MockDBPinger)(nil)
 )
+
+// Decrypter определяет интерфейс для операций дешифрования
+type Decrypter interface {
+	Decrypt(data []byte) ([]byte, error)
+}
+
+var _ Decrypter = (*cryptoutil.PrivateKeyProvider)(nil)
