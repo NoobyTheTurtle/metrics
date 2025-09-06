@@ -122,7 +122,9 @@ func TestNewAgentConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testutil.ResetFlags()
-			os.Args = tt.args
+
+			args := append(tt.args, "-c", "../../configs/agent.json")
+			os.Args = args
 
 			for k, v := range tt.envs {
 				os.Setenv(k, v)
@@ -133,7 +135,7 @@ func TestNewAgentConfig(t *testing.T) {
 				}
 			}()
 
-			config, err := NewAgentConfig("../../configs/default.yml")
+			config, err := NewAgentConfig()
 
 			if tt.expectedErrMsg != "" {
 				assert.Error(t, err)

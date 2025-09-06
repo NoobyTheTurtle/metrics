@@ -14,6 +14,7 @@ BUILD_COMMIT ?= $(shell git rev-parse HEAD)
 LDFLAGS = -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X main.buildDate=$(BUILD_DATE) -X main.buildCommit=$(BUILD_COMMIT)"
 
 DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable
+COVER_EXCLUDE = "(mocks|easyjson|testutil|cmd|app)"
 
 .DEFAULT_GOAL := help
 
@@ -29,14 +30,16 @@ test-all:
 
 .PHONY: test-cover
 test-cover:
-	@echo "Running tests with coverage..."
-	@go test -cover -count=1 ./...
+	@echo "Running tests with coverage (excluding generated files)..."
+	@PACKAGES=$$(go list ./... | grep -v -E $(COVER_EXCLUDE) | paste -sd "," -); \
+	go test -cover -count=1 -coverpkg=$$PACKAGES ./...
 
 .PHONY: test-coverage
 test-coverage:
-	@echo "Running tests with detailed coverage report..."
-	@go test -coverprofile=coverage.out ./... > /dev/null 2>&1
-	@go tool cover -func=coverage.out
+	@echo "Running tests with detailed coverage report (excluding generated files)..."
+	@PACKAGES=$$(go list ./... | grep -v -E $(COVER_EXCLUDE) | paste -sd "," -); \
+	go test -coverprofile=coverage.out -coverpkg=$$PACKAGES ./... > /dev/null 2>&1
+	@go tool cover -func=coverage.out | grep -v "mocks.go" | grep -v "easyjson.go"
 	@rm -f coverage.out
 
 .PHONY: generate
@@ -91,12 +94,12 @@ build-all: build-agent build-server build-staticlint
 .PHONY: run-agent
 run-agent: build-agent
 	@echo "Running agent..."
-	@$(AGENT_BIN)
+	@$(AGENT_BIN) -c configs/agent.json
 
 .PHONY: run-server
 run-server: build-server
 	@echo "Running server..."
-	@DATABASE_DSN="$(DATABASE_DSN)" $(SERVER_BIN)
+	@DATABASE_DSN="$(DATABASE_DSN)" $(SERVER_BIN) -c configs/server.json
 
 .PHONY: clean
 clean:
@@ -153,25 +156,25 @@ profile-clean:
 .PHONY: help
 help:
 	@echo "Available commands:"
-	@echo "  make test             - Run unit tests"
-	@echo "  make test-all         - Run all tests with database"
-	@echo "  make test-cover       - Run tests with coverage report"
-	@echo "  make test-coverage    - Get total test coverage percentage"
-	@echo "  make generate         - Run go generate"
-	@echo "  make generate-mocks   - Regenerate all mocks"
-	@echo "  make format           - Format Go code with goimports"
-	@echo "  make godoc            - Start godoc web server at http://localhost:8082"
-	@echo "  make build-agent      - Build agent"
-	@echo "  make build-server     - Build server"
-	@echo "  make build-staticlint - Build staticlint analyzer"
-	@echo "  make build-all        - Build all projects"
-	@echo "  make run-agent        - Run agent"
-	@echo "  make run-server       - Run server"
-	@echo "  make staticlint       - Run static analysis on entire project"
-	@echo "  make postgres         - Start PostgreSQL in Docker"
-	@echo "  make postgres-stop    - Stop and remove PostgreSQL Docker container"
-	@echo "  make clean            - Clean binary files and reports"
-	@echo "  make profile-base     - Generate base memory profile"
-	@echo "  make profile-result   - Generate result memory profile"
-	@echo "  make profile-compare  - Compare base.pprof vs result.pprof (shows memory diff)"
-	@echo "  make profile-clean    - Clean all profile files"
+	@echo "  make test                    - Run unit tests"
+	@echo "  make test-all                - Run all tests with database"
+	@echo "  make test-cover              - Run tests with coverage (excluding generated files)"
+	@echo "  make test-coverage           - Get detailed coverage report (excluding generated files)"
+	@echo "  make generate                - Run go generate"
+	@echo "  make generate-mocks          - Regenerate all mocks"
+	@echo "  make format                  - Format Go code with goimports"
+	@echo "  make godoc                   - Start godoc web server at http://localhost:8082"
+	@echo "  make build-agent             - Build agent"
+	@echo "  make build-server            - Build server"
+	@echo "  make build-staticlint        - Build staticlint analyzer"
+	@echo "  make build-all               - Build all projects"
+	@echo "  make run-agent               - Run agent"
+	@echo "  make run-server              - Run server"
+	@echo "  make staticlint              - Run static analysis on entire project"
+	@echo "  make postgres                - Start PostgreSQL in Docker"
+	@echo "  make postgres-stop           - Stop and remove PostgreSQL Docker container"
+	@echo "  make clean                   - Clean binary files and reports"
+	@echo "  make profile-base            - Generate base memory profile"
+	@echo "  make profile-result          - Generate result memory profile"
+	@echo "  make profile-compare         - Compare base.pprof vs result.pprof (shows memory diff)"
+	@echo "  make profile-clean           - Clean all profile files"

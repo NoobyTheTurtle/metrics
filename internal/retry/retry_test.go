@@ -12,61 +12,141 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWithRetries(t *testing.T) {
+func TestWithRetries_SuccessOnFirstAttempt(t *testing.T) {
+	originalDelays := retryDelays
+	defer func() { retryDelays = originalDelays }()
 	retryDelays = []time.Duration{1 * time.Millisecond, 2 * time.Millisecond, 3 * time.Millisecond}
 
 	errRetryable := errors.New("retryable error")
-	errNonRetryable := errors.New("non-retryable error")
-
 	checker := func(err error) bool {
 		return errors.Is(err, errRetryable)
 	}
 
-	t.Run("success on first attempt", func(t *testing.T) {
-		op := func() error {
-			return nil
-		}
-		err := WithRetries(op, checker)
-		assert.NoError(t, err)
-	})
+	op := func() error {
+		return nil
+	}
 
-	t.Run("success after retries", func(t *testing.T) {
-		attempts := 0
-		op := func() error {
-			attempts++
-			if attempts < 3 {
-				return errRetryable
-			}
-			return nil
-		}
-		err := WithRetries(op, checker)
-		assert.NoError(t, err)
-		assert.Equal(t, 3, attempts)
-	})
+	err := WithRetries(op, checker)
 
-	t.Run("failure after all retries", func(t *testing.T) {
-		attempts := 0
-		op := func() error {
-			attempts++
+	assert.NoError(t, err)
+}
+
+func TestWithRetries_SuccessAfterRetries(t *testing.T) {
+	originalDelays := retryDelays
+	defer func() { retryDelays = originalDelays }()
+	retryDelays = []time.Duration{1 * time.Millisecond, 2 * time.Millisecond, 3 * time.Millisecond}
+
+	errRetryable := errors.New("retryable error")
+	checker := func(err error) bool {
+		return errors.Is(err, errRetryable)
+	}
+
+	attempts := 0
+	op := func() error {
+		attempts++
+		if attempts < 3 {
 			return errRetryable
 		}
-		err := WithRetries(op, checker)
-		assert.Error(t, err)
-		assert.Equal(t, errRetryable, err)
-		assert.Equal(t, 4, attempts)
-	})
+		return nil
+	}
 
-	t.Run("failure with non-retryable error", func(t *testing.T) {
-		attempts := 0
-		op := func() error {
-			attempts++
-			return errNonRetryable
+	err := WithRetries(op, checker)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 3, attempts)
+}
+
+func TestWithRetries_FailureAfterAllRetries(t *testing.T) {
+	originalDelays := retryDelays
+	defer func() { retryDelays = originalDelays }()
+	retryDelays = []time.Duration{1 * time.Millisecond, 2 * time.Millisecond, 3 * time.Millisecond}
+
+	errRetryable := errors.New("retryable error")
+	checker := func(err error) bool {
+		return errors.Is(err, errRetryable)
+	}
+
+	attempts := 0
+	op := func() error {
+		attempts++
+		return errRetryable
+	}
+
+	err := WithRetries(op, checker)
+
+	assert.Error(t, err)
+	assert.Equal(t, errRetryable, err)
+	assert.Equal(t, 4, attempts)
+}
+
+func TestWithRetries_FailureWithNonRetryableError(t *testing.T) {
+	originalDelays := retryDelays
+	defer func() { retryDelays = originalDelays }()
+	retryDelays = []time.Duration{1 * time.Millisecond, 2 * time.Millisecond, 3 * time.Millisecond}
+
+	errRetryable := errors.New("retryable error")
+	errNonRetryable := errors.New("non-retryable error")
+	checker := func(err error) bool {
+		return errors.Is(err, errRetryable)
+	}
+
+	attempts := 0
+	op := func() error {
+		attempts++
+		return errNonRetryable
+	}
+
+	err := WithRetries(op, checker)
+
+	assert.Error(t, err)
+	assert.Equal(t, errNonRetryable, err)
+	assert.Equal(t, 1, attempts)
+}
+
+func TestWithRetries_EmptyDelaysSlice(t *testing.T) {
+	originalDelays := retryDelays
+	defer func() { retryDelays = originalDelays }()
+	retryDelays = []time.Duration{}
+
+	errRetryable := errors.New("retryable error")
+	checker := func(err error) bool {
+		return errors.Is(err, errRetryable)
+	}
+
+	attempts := 0
+	op := func() error {
+		attempts++
+		return errRetryable
+	}
+
+	err := WithRetries(op, checker)
+
+	assert.Error(t, err)
+	assert.Equal(t, errRetryable, err)
+	assert.Equal(t, 1, attempts)
+}
+
+func TestWithRetries_NilChecker(t *testing.T) {
+	originalDelays := retryDelays
+	defer func() { retryDelays = originalDelays }()
+	retryDelays = []time.Duration{1 * time.Millisecond}
+
+	testErr := errors.New("test error")
+	attempts := 0
+	op := func() error {
+		attempts++
+		return testErr
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			assert.Equal(t, 1, attempts)
 		}
-		err := WithRetries(op, checker)
-		assert.Error(t, err)
-		assert.Equal(t, errNonRetryable, err)
-		assert.Equal(t, 1, attempts)
-	})
+	}()
+
+	err := WithRetries(op, nil)
+
+	t.Fatal("Expected panic due to nil checker, but got result:", err)
 }
 
 func TestPgErrorChecker(t *testing.T) {
