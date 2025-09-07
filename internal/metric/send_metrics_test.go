@@ -154,7 +154,7 @@ func TestMetrics_SendMetrics(t *testing.T) {
 
 			mockLogger.EXPECT().Warn("Failed to send metrics batch: %v", gomock.Any()).AnyTimes()
 
-			transport := NewHTTPTransport(server.URL[7:], false, "", nil, mockLogger) // Remove "http://"
+			transport := NewHTTPTransport(server.URL[7:], false, "", nil, mockLogger)
 			metrics := NewMetricsWithTransport(mockLogger, transport)
 			metrics.Gauges = tt.gauges
 			metrics.Counters = tt.counters

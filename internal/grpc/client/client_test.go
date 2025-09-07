@@ -19,7 +19,6 @@ import (
 	"github.com/NoobyTheTurtle/metrics/proto"
 )
 
-// mockMetricsServer реализует mock gRPC сервер для тестов.
 type mockMetricsServer struct {
 	proto.UnimplementedMetricsServiceServer
 	updateMetricFunc  func(ctx context.Context, req *proto.UpdateMetricRequest) (*proto.UpdateMetricResponse, error)
@@ -48,7 +47,6 @@ func (m *mockMetricsServer) Ping(ctx context.Context, req *proto.PingRequest) (*
 	return &proto.PingResponse{}, nil
 }
 
-// setupTestServer создает тестовый gRPC сервер.
 func setupTestServer(mockServer *mockMetricsServer) (*grpc.Server, *bufconn.Listener) {
 	lis := bufconn.Listen(1024 * 1024)
 	server := grpc.NewServer()
@@ -61,7 +59,6 @@ func setupTestServer(mockServer *mockMetricsServer) (*grpc.Server, *bufconn.List
 	return server, lis
 }
 
-// createTestClient создает тестового клиента подключенного к mock серверу.
 func createTestClient(t *testing.T, lis *bufconn.Listener) *Client {
 	config := DefaultConfig()
 	config.DialTimeout = time.Second
@@ -69,16 +66,13 @@ func createTestClient(t *testing.T, lis *bufconn.Listener) *Client {
 
 	logger := NewMockGRPCLogger(gomock.NewController(t))
 
-	// Настраиваем ожидания для логгера на случай ошибок
 	logger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
 
-	// Создаем соединение к bufconn listener
-	conn, err := grpc.Dial("",
+	conn, err := grpc.NewClient("passthrough://bufconn",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
 			return lis.Dial()
 		}),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
 	)
 	require.NoError(t, err)
 
@@ -96,17 +90,17 @@ func TestNewClient(t *testing.T) {
 	logger := NewMockGRPCLogger(gomock.NewController(t))
 
 	t.Run("successful creation", func(t *testing.T) {
-		// Тестируем только валидацию конфигурации, так как bufconn требует специальной настройки
 		config := Config{
-			ServerAddress:  "invalid:address",
-			DialTimeout:    time.Millisecond, // Короткий таймаут для быстрого завершения теста
+			ServerAddress:  "localhost:50051",
+			DialTimeout:    time.Second,
 			RequestTimeout: time.Second,
 		}
 
-		// Ожидаем ошибку подключения к несуществующему адресу
-		_, err := NewClient(config, logger)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to connect to gRPC server")
+		client, err := NewClient(config, logger)
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+		assert.NotNil(t, client.conn)
+		assert.NotNil(t, client.client)
 	})
 
 	t.Run("nil logger", func(t *testing.T) {
@@ -236,12 +230,10 @@ func TestClient_UpdateMetrics(t *testing.T) {
 		mockServer.updateMetricsFunc = func(ctx context.Context, req *proto.UpdateMetricsRequest) (*proto.UpdateMetricsResponse, error) {
 			assert.Len(t, req.Metrics, 2)
 
-			// Проверяем первую метрику (gauge)
 			assert.Equal(t, "test_gauge", req.Metrics[0].Id)
 			assert.Equal(t, proto.MetricType_METRIC_TYPE_GAUGE, req.Metrics[0].Type)
 			assert.Equal(t, value, req.Metrics[0].GetGaugeValue())
 
-			// Проверяем вторую метрику (counter)
 			assert.Equal(t, "test_counter", req.Metrics[1].Id)
 			assert.Equal(t, proto.MetricType_METRIC_TYPE_COUNTER, req.Metrics[1].Type)
 			assert.Equal(t, delta, req.Metrics[1].GetCounterDelta())

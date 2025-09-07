@@ -76,9 +76,10 @@ func TestNewGRPCTransport(t *testing.T) {
 
 	t.Run("creation with invalid server address", func(t *testing.T) {
 		transport, err := NewGRPCTransport("invalid:address", logger)
-		assert.Error(t, err)
-		assert.Nil(t, transport)
-		assert.Contains(t, err.Error(), "failed to create gRPC client")
+		assert.NoError(t, err)
+		assert.NotNil(t, transport)
+		assert.NotNil(t, transport.client)
+		assert.Equal(t, logger, transport.logger)
 	})
 
 	t.Run("creation with nil logger should fail", func(t *testing.T) {
@@ -163,14 +164,13 @@ func TestGRPCTransport_SendMetrics(t *testing.T) {
 
 			logger := NewMockMetricsLogger(gomock.NewController(t))
 
-			// Set up logger expectations
 			if tt.expectedError {
 				logger.EXPECT().Warn(gomock.Any(), gomock.Any()).Times(1)
 			} else {
 				logger.EXPECT().Warn(gomock.Any(), gomock.Any()).Times(0)
 			}
 
-			conn, err := grpc.Dial("",
+			conn, err := grpc.NewClient("passthrough://bufconn",
 				grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
 					return lis.Dial()
 				}),
@@ -314,10 +314,8 @@ func (c *testGRPCClient) Close() error {
 
 func TestGRPCTransport_Close(t *testing.T) {
 	t.Run("successful close", func(t *testing.T) {
-		conn, err := grpc.Dial("localhost:0",
+		conn, err := grpc.NewClient("localhost:0",
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithBlock(),
-			grpc.WithTimeout(100*time.Millisecond),
 		)
 
 		transport := &GRPCTransport{

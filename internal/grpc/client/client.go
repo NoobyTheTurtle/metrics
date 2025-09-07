@@ -68,15 +68,11 @@ func NewClient(config Config, logger GRPCLogger) (*Client, error) {
 }
 
 func (c *Client) connect() error {
-	ctx, cancel := context.WithTimeout(context.Background(), c.config.DialTimeout)
-	defer cancel()
-
-	conn, err := grpc_client.DialContext(ctx, c.config.ServerAddress,
+	conn, err := grpc_client.NewClient(c.config.ServerAddress,
 		grpc_client.WithTransportCredentials(insecure.NewCredentials()),
-		grpc_client.WithBlock(),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to dial gRPC server at %s: %w", c.config.ServerAddress, err)
+		return fmt.Errorf("failed to create gRPC client for server at %s: %w", c.config.ServerAddress, err)
 	}
 
 	c.conn = conn
