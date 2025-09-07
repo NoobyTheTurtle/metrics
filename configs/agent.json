@@ -8,5 +8,5 @@
     "rate_limit": 1,
     "crypto_key": "",
     "grpc_server_address": "localhost:9090",
-    "enable_grpc": true
+    "enable_grpc": false
 }

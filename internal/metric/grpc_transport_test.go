@@ -317,6 +317,7 @@ func TestGRPCTransport_Close(t *testing.T) {
 		conn, err := grpc.NewClient("localhost:0",
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		)
+		require.NoError(t, err)
 
 		transport := &GRPCTransport{
 			client: &testGRPCClient{conn: conn},
