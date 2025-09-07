@@ -12,7 +12,7 @@ import (
 func TestNewAgentConfig(t *testing.T) {
 	oldArgs := os.Args
 	oldEnv := map[string]string{}
-	for _, env := range []string{"ADDRESS", "POLL_INTERVAL", "REPORT_INTERVAL", "LOG_LEVEL", "APP_ENV"} {
+	for _, env := range []string{"ADDRESS", "POLL_INTERVAL", "REPORT_INTERVAL", "LOG_LEVEL", "APP_ENV", "KEY", "RATE_LIMIT", "CRYPTO_KEY", "GRPC_ADDRESS", "ENABLE_GRPC"} {
 		oldEnv[env] = os.Getenv(env)
 	}
 
@@ -42,22 +42,32 @@ func TestNewAgentConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &AgentConfig{
-				ServerAddress:  "localhost:8080",
-				PollInterval:   2,
-				ReportInterval: 10,
-				LogLevel:       "info",
-				AppEnv:         "development",
+				ServerAddress:     "localhost:8080",
+				PollInterval:      2,
+				ReportInterval:    10,
+				LogLevel:          "info",
+				AppEnv:            "development",
+				Key:               "",
+				RateLimit:         1,
+				CryptoKey:         "",
+				GRPCServerAddress: "localhost:9090",
+				EnableGRPC:        false,
 			},
 		},
 		{
 			name: "command line arguments",
-			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20"},
+			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20", "-grpc-address", "localhost:9091", "-enable-grpc"},
 			expected: &AgentConfig{
-				ServerAddress:  "localhost:9090",
-				PollInterval:   5,
-				ReportInterval: 20,
-				LogLevel:       "info",
-				AppEnv:         "development",
+				ServerAddress:     "localhost:9090",
+				PollInterval:      5,
+				ReportInterval:    20,
+				LogLevel:          "info",
+				AppEnv:            "development",
+				Key:               "",
+				RateLimit:         1,
+				CryptoKey:         "",
+				GRPCServerAddress: "localhost:9091",
+				EnableGRPC:        true,
 			},
 		},
 		{
@@ -69,31 +79,51 @@ func TestNewAgentConfig(t *testing.T) {
 				"REPORT_INTERVAL": "15",
 				"LOG_LEVEL":       "debug",
 				"APP_ENV":         "test",
+				"KEY":             "test-key",
+				"RATE_LIMIT":      "5",
+				"CRYPTO_KEY":      "/path/to/key",
+				"GRPC_ADDRESS":    "localhost:9092",
+				"ENABLE_GRPC":     "true",
 			},
 			expected: &AgentConfig{
-				ServerAddress:  "localhost:7070",
-				PollInterval:   3,
-				ReportInterval: 15,
-				LogLevel:       "debug",
-				AppEnv:         "test",
+				ServerAddress:     "localhost:7070",
+				PollInterval:      3,
+				ReportInterval:    15,
+				LogLevel:          "debug",
+				AppEnv:            "test",
+				Key:               "test-key",
+				RateLimit:         5,
+				CryptoKey:         "/path/to/key",
+				GRPCServerAddress: "localhost:9092",
+				EnableGRPC:        true,
 			},
 		},
 		{
 			name: "environment variables override flags",
-			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20"},
+			args: []string{"test", "-a", "localhost:9090", "-p", "5", "-r", "20", "-grpc-address", "localhost:9091", "-enable-grpc"},
 			envs: map[string]string{
 				"ADDRESS":         "localhost:7070",
 				"POLL_INTERVAL":   "3",
 				"REPORT_INTERVAL": "15",
 				"LOG_LEVEL":       "debug",
 				"APP_ENV":         "test",
+				"KEY":             "env-key",
+				"RATE_LIMIT":      "10",
+				"CRYPTO_KEY":      "/env/path/to/key",
+				"GRPC_ADDRESS":    "localhost:9093",
+				"ENABLE_GRPC":     "false",
 			},
 			expected: &AgentConfig{
-				ServerAddress:  "localhost:7070",
-				PollInterval:   3,
-				ReportInterval: 15,
-				LogLevel:       "debug",
-				AppEnv:         "test",
+				ServerAddress:     "localhost:7070",
+				PollInterval:      3,
+				ReportInterval:    15,
+				LogLevel:          "debug",
+				AppEnv:            "test",
+				Key:               "env-key",
+				RateLimit:         10,
+				CryptoKey:         "/env/path/to/key",
+				GRPCServerAddress: "localhost:9093",
+				EnableGRPC:        false,
 			},
 		},
 		{
@@ -109,6 +139,22 @@ func TestNewAgentConfig(t *testing.T) {
 			args: []string{"test"},
 			envs: map[string]string{
 				"REPORT_INTERVAL": "invalid",
+			},
+			expectedErrMsg: "config.NewAgentConfig: parsing environment variables",
+		},
+		{
+			name: "invalid rate limit environment variable",
+			args: []string{"test"},
+			envs: map[string]string{
+				"RATE_LIMIT": "invalid",
+			},
+			expectedErrMsg: "config.NewAgentConfig: parsing environment variables",
+		},
+		{
+			name: "invalid enable grpc environment variable",
+			args: []string{"test"},
+			envs: map[string]string{
+				"ENABLE_GRPC": "invalid",
 			},
 			expectedErrMsg: "config.NewAgentConfig: parsing environment variables",
 		},
@@ -147,6 +193,11 @@ func TestNewAgentConfig(t *testing.T) {
 				assert.Equal(t, tt.expected.ReportInterval, config.ReportInterval)
 				assert.Equal(t, tt.expected.LogLevel, config.LogLevel)
 				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)
+				assert.Equal(t, tt.expected.Key, config.Key)
+				assert.Equal(t, tt.expected.RateLimit, config.RateLimit)
+				assert.Equal(t, tt.expected.CryptoKey, config.CryptoKey)
+				assert.Equal(t, tt.expected.GRPCServerAddress, config.GRPCServerAddress)
+				assert.Equal(t, tt.expected.EnableGRPC, config.EnableGRPC)
 			}
 		})
 	}

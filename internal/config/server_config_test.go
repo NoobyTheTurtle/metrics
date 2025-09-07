@@ -12,7 +12,7 @@ import (
 func TestNewServerConfig(t *testing.T) {
 	oldArgs := os.Args
 	oldEnv := map[string]string{}
-	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV", "DATABASE_DSN", "TRUSTED_SUBNET"} {
+	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV", "DATABASE_DSN", "TRUSTED_SUBNET", "GRPC_ADDRESS", "ENABLE_GRPC"} {
 		oldEnv[env] = os.Getenv(env)
 	}
 
@@ -42,48 +42,70 @@ func TestNewServerConfig(t *testing.T) {
 			name: "default values",
 			args: []string{"test"},
 			expected: &ServerConfig{
-				ConfigPath:    "../../configs/server.json",
-				ServerAddress: "localhost:8080",
-				LogLevel:      "info",
-				AppEnv:        "development",
-				DatabaseDSN:   "",
-				TrustedSubnet: "",
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:8080",
+				LogLevel:          "info",
+				AppEnv:            "development",
+				DatabaseDSN:       "",
+				TrustedSubnet:     "",
+				GRPCServerAddress: "localhost:9090",
+				EnableGRPC:        false,
 			},
 		},
 		{
 			name: "command line arguments",
 			args: []string{"test", "-a", "localhost:9090"},
 			expected: &ServerConfig{
-				ConfigPath:    "../../configs/server.json",
-				ServerAddress: "localhost:9090",
-				LogLevel:      "info",
-				AppEnv:        "development",
-				DatabaseDSN:   "",
-				TrustedSubnet: "",
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:9090",
+				LogLevel:          "info",
+				AppEnv:            "development",
+				DatabaseDSN:       "",
+				TrustedSubnet:     "",
+				GRPCServerAddress: "localhost:9090",
+				EnableGRPC:        false,
 			},
 		},
 		{
 			name: "database dsn command line argument",
 			args: []string{"test", "-d", "postgres://testuser:testpass@testhost:5432/testdb?sslmode=disable"},
 			expected: &ServerConfig{
-				ConfigPath:    "../../configs/server.json",
-				ServerAddress: "localhost:8080",
-				LogLevel:      "info",
-				AppEnv:        "development",
-				DatabaseDSN:   "postgres://testuser:testpass@testhost:5432/testdb?sslmode=disable",
-				TrustedSubnet: "",
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:8080",
+				LogLevel:          "info",
+				AppEnv:            "development",
+				DatabaseDSN:       "postgres://testuser:testpass@testhost:5432/testdb?sslmode=disable",
+				TrustedSubnet:     "",
+				GRPCServerAddress: "localhost:9090",
+				EnableGRPC:        false,
 			},
 		},
 		{
 			name: "trusted subnet command line argument",
 			args: []string{"test", "-t", "172.16.0.0/16"},
 			expected: &ServerConfig{
-				ConfigPath:    "../../configs/server.json",
-				ServerAddress: "localhost:8080",
-				LogLevel:      "info",
-				AppEnv:        "development",
-				DatabaseDSN:   "",
-				TrustedSubnet: "172.16.0.0/16",
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:8080",
+				LogLevel:          "info",
+				AppEnv:            "development",
+				DatabaseDSN:       "",
+				TrustedSubnet:     "172.16.0.0/16",
+				GRPCServerAddress: "localhost:9090",
+				EnableGRPC:        false,
+			},
+		},
+		{
+			name: "grpc command line arguments",
+			args: []string{"test", "-grpc-address", "localhost:9091", "-enable-grpc"},
+			expected: &ServerConfig{
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:8080",
+				LogLevel:          "info",
+				AppEnv:            "development",
+				DatabaseDSN:       "",
+				TrustedSubnet:     "",
+				GRPCServerAddress: "localhost:9091",
+				EnableGRPC:        true,
 			},
 		},
 		{
@@ -95,14 +117,18 @@ func TestNewServerConfig(t *testing.T) {
 				"APP_ENV":        "test",
 				"DATABASE_DSN":   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
 				"TRUSTED_SUBNET": "192.168.1.0/24",
+				"GRPC_ADDRESS":   "localhost:8090",
+				"ENABLE_GRPC":    "true",
 			},
 			expected: &ServerConfig{
-				ConfigPath:    "../../configs/server.json",
-				ServerAddress: "localhost:7070",
-				LogLevel:      "debug",
-				AppEnv:        "test",
-				DatabaseDSN:   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
-				TrustedSubnet: "192.168.1.0/24",
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:7070",
+				LogLevel:          "debug",
+				AppEnv:            "test",
+				DatabaseDSN:       "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				TrustedSubnet:     "192.168.1.0/24",
+				GRPCServerAddress: "localhost:8090",
+				EnableGRPC:        true,
 			},
 		},
 		{
@@ -114,14 +140,18 @@ func TestNewServerConfig(t *testing.T) {
 				"APP_ENV":        "test",
 				"DATABASE_DSN":   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
 				"TRUSTED_SUBNET": "10.0.0.0/8",
+				"GRPC_ADDRESS":   "localhost:8091",
+				"ENABLE_GRPC":    "false",
 			},
 			expected: &ServerConfig{
-				ConfigPath:    "../../configs/server.json",
-				ServerAddress: "localhost:7070",
-				LogLevel:      "debug",
-				AppEnv:        "test",
-				DatabaseDSN:   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
-				TrustedSubnet: "10.0.0.0/8",
+				ConfigPath:        "../../configs/server.json",
+				ServerAddress:     "localhost:7070",
+				LogLevel:          "debug",
+				AppEnv:            "test",
+				DatabaseDSN:       "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				TrustedSubnet:     "10.0.0.0/8",
+				GRPCServerAddress: "localhost:8091",
+				EnableGRPC:        false,
 			},
 		},
 		{
@@ -160,6 +190,8 @@ func TestNewServerConfig(t *testing.T) {
 				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)
 				assert.Equal(t, tt.expected.DatabaseDSN, config.DatabaseDSN)
 				assert.Equal(t, tt.expected.TrustedSubnet, config.TrustedSubnet)
+				assert.Equal(t, tt.expected.GRPCServerAddress, config.GRPCServerAddress)
+				assert.Equal(t, tt.expected.EnableGRPC, config.EnableGRPC)
 			}
 		})
 	}

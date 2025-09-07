@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -13,11 +15,14 @@ import (
 	"github.com/NoobyTheTurtle/metrics/internal/cryptoutil"
 	"github.com/NoobyTheTurtle/metrics/internal/database/postgres"
 	"github.com/NoobyTheTurtle/metrics/internal/handler"
+	grpchandler "github.com/NoobyTheTurtle/metrics/internal/handler/grpc"
 	"github.com/NoobyTheTurtle/metrics/internal/logger"
 	"github.com/NoobyTheTurtle/metrics/internal/persister"
 	"github.com/NoobyTheTurtle/metrics/internal/storage"
 	"github.com/NoobyTheTurtle/metrics/internal/storage/adapter"
+	"github.com/NoobyTheTurtle/metrics/proto"
 	"github.com/jmoiron/sqlx"
+	"google.golang.org/grpc"
 )
 
 func StartServer(ctx context.Context) error {
@@ -58,18 +63,47 @@ func StartServer(ctx context.Context) error {
 
 	router := handler.NewRouter(metricStorage, log, dbClient, c.Key, decrypter, c.TrustedSubnet)
 
-	server := &http.Server{
+	httpServer := &http.Server{
 		Addr:    c.ServerAddress,
 		Handler: router.Handler(),
 	}
 
-	serverErr := make(chan error, 1)
+	var grpcServer *grpc.Server
+	if c.EnableGRPC {
+		grpcServer = grpc.NewServer(
+			grpc.UnaryInterceptor(grpchandler.LoggerInterceptor(log)),
+		)
+		grpcHandler := grpchandler.NewGRPCServer(metricStorage, dbClient, log)
+		proto.RegisterMetricsServiceServer(grpcServer, grpcHandler)
+	}
+
+	serverErr := make(chan error, 2)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
-		log.Info("Starting server on %s", c.ServerAddress)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			serverErr <- err
+		defer wg.Done()
+		log.Info("Starting HTTP server on %s", c.ServerAddress)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			serverErr <- fmt.Errorf("HTTP server error: %w", err)
 		}
 	}()
+
+	if c.EnableGRPC {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			lis, err := net.Listen("tcp", c.GRPCServerAddress)
+			if err != nil {
+				serverErr <- fmt.Errorf("failed to listen on gRPC address %s: %w", c.GRPCServerAddress, err)
+				return
+			}
+			log.Info("Starting gRPC server on %s", c.GRPCServerAddress)
+			if err := grpcServer.Serve(lis); err != nil {
+				serverErr <- fmt.Errorf("gRPC server error: %w", err)
+			}
+		}()
+	}
 
 	select {
 	case err := <-serverErr:
@@ -82,10 +116,27 @@ func StartServer(ctx context.Context) error {
 	defer shutdownCancel()
 
 	log.Info("Shutting down HTTP server...")
-	if err := server.Shutdown(shutdownCtx); err != nil {
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
 		log.Error("Error during HTTP server shutdown: %v", err)
 	} else {
 		log.Info("HTTP server stopped")
+	}
+
+	if c.EnableGRPC && grpcServer != nil {
+		log.Info("Shutting down gRPC server...")
+		grpcShutdownDone := make(chan struct{})
+		go func() {
+			grpcServer.GracefulStop()
+			close(grpcShutdownDone)
+		}()
+
+		select {
+		case <-grpcShutdownDone:
+			log.Info("gRPC server stopped")
+		case <-shutdownCtx.Done():
+			log.Error("Timeout waiting for gRPC server shutdown, forcing stop")
+			grpcServer.Stop()
+		}
 	}
 
 	if persisterDone != nil {

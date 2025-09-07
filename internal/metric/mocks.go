@@ -10,8 +10,10 @@
 package metric
 
 import (
+	context "context"
 	reflect "reflect"
 
+	model "github.com/NoobyTheTurtle/metrics/internal/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -110,4 +112,56 @@ func (m *MockEncrypter) Encrypt(data []byte) ([]byte, error) {
 func (mr *MockEncrypterMockRecorder) Encrypt(data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockEncrypter)(nil).Encrypt), data)
+}
+
+// MockMetricsTransport is a mock of MetricsTransport interface.
+type MockMetricsTransport struct {
+	ctrl     *gomock.Controller
+	recorder *MockMetricsTransportMockRecorder
+	isgomock struct{}
+}
+
+// MockMetricsTransportMockRecorder is the mock recorder for MockMetricsTransport.
+type MockMetricsTransportMockRecorder struct {
+	mock *MockMetricsTransport
+}
+
+// NewMockMetricsTransport creates a new mock instance.
+func NewMockMetricsTransport(ctrl *gomock.Controller) *MockMetricsTransport {
+	mock := &MockMetricsTransport{ctrl: ctrl}
+	mock.recorder = &MockMetricsTransportMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMetricsTransport) EXPECT() *MockMetricsTransportMockRecorder {
+	return m.recorder
+}
+
+// Close mocks base method.
+func (m *MockMetricsTransport) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockMetricsTransportMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockMetricsTransport)(nil).Close))
+}
+
+// SendMetrics mocks base method.
+func (m *MockMetricsTransport) SendMetrics(ctx context.Context, metrics model.Metrics) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendMetrics", ctx, metrics)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMetrics indicates an expected call of SendMetrics.
+func (mr *MockMetricsTransportMockRecorder) SendMetrics(ctx, metrics any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMetrics", reflect.TypeOf((*MockMetricsTransport)(nil).SendMetrics), ctx, metrics)
 }

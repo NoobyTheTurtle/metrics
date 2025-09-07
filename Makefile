@@ -14,7 +14,7 @@ BUILD_COMMIT ?= $(shell git rev-parse HEAD)
 LDFLAGS = -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X main.buildDate=$(BUILD_DATE) -X main.buildCommit=$(BUILD_COMMIT)"
 
 DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/metrics?sslmode=disable
-COVER_EXCLUDE = "(mocks|easyjson|testutil|cmd|app)"
+COVER_EXCLUDE = "(mocks|easyjson|testutil|cmd|app|proto)"
 
 .DEFAULT_GOAL := help
 
@@ -43,7 +43,7 @@ test-coverage:
 	@rm -f coverage.out
 
 .PHONY: generate
-generate:
+generate: generate-proto
 	@echo "Running go generate..."
 	@go generate ./...
 
@@ -57,6 +57,20 @@ generate-mocks:
 		mockgen -source=$$file -destination=$$dir/mocks.go -package=$$pkg; \
 	done
 	@echo "Mocks successfully regenerated"
+
+.PHONY: generate-proto
+generate-proto:
+	@echo "Generating Go code from protobuf files..."
+	@protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		proto/metrics.proto
+	@echo "Protobuf code generation completed"
+
+.PHONY: clean-proto
+clean-proto:
+	@echo "Cleaning generated protobuf files..."
+	@rm -f proto/*.pb.go
+	@echo "Protobuf files cleaned"
 
 .PHONY: format
 format:
@@ -102,7 +116,7 @@ run-server: build-server
 	@DATABASE_DSN="$(DATABASE_DSN)" $(SERVER_BIN) -c configs/server.json
 
 .PHONY: clean
-clean:
+clean: clean-proto
 	@echo "Cleaning..."
 	@rm -f $(AGENT_BIN)
 	@rm -f $(SERVER_BIN)
@@ -160,7 +174,8 @@ help:
 	@echo "  make test-all                - Run all tests with database"
 	@echo "  make test-cover              - Run tests with coverage (excluding generated files)"
 	@echo "  make test-coverage           - Get detailed coverage report (excluding generated files)"
-	@echo "  make generate                - Run go generate"
+	@echo "  make generate                - Run go generate and generate protobuf code"
+	@echo "  make generate-proto          - Generate Go code from protobuf files"
 	@echo "  make generate-mocks          - Regenerate all mocks"
 	@echo "  make format                  - Format Go code with goimports"
 	@echo "  make godoc                   - Start godoc web server at http://localhost:8082"
@@ -173,7 +188,8 @@ help:
 	@echo "  make staticlint              - Run static analysis on entire project"
 	@echo "  make postgres                - Start PostgreSQL in Docker"
 	@echo "  make postgres-stop           - Stop and remove PostgreSQL Docker container"
-	@echo "  make clean                   - Clean binary files and reports"
+	@echo "  make clean                   - Clean binary files, reports, and generated protobuf code"
+	@echo "  make clean-proto             - Clean generated protobuf files"
 	@echo "  make profile-base            - Generate base memory profile"
 	@echo "  make profile-result          - Generate result memory profile"
 	@echo "  make profile-compare         - Compare base.pprof vs result.pprof (shows memory diff)"

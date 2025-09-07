@@ -8,5 +8,7 @@
     "file_storage_path": "tmp/metrics-db.json",
     "restore": false,
     "database_dsn": "",
-    "trusted_subnet": ""
+    "trusted_subnet": "",
+    "grpc_server_address": "localhost:9090",
+    "enable_grpc": true
 }

@@ -9,15 +9,17 @@ import (
 )
 
 type AgentConfig struct {
-	ConfigPath     string
-	PollInterval   uint   `env:"POLL_INTERVAL"`
-	ReportInterval uint   `env:"REPORT_INTERVAL"`
-	ServerAddress  string `env:"ADDRESS"`
-	LogLevel       string `env:"LOG_LEVEL"`
-	AppEnv         string `env:"APP_ENV"`
-	Key            string `env:"KEY"`
-	RateLimit      uint   `env:"RATE_LIMIT"`
-	CryptoKey      string `env:"CRYPTO_KEY"`
+	ConfigPath        string
+	PollInterval      uint   `env:"POLL_INTERVAL"`
+	ReportInterval    uint   `env:"REPORT_INTERVAL"`
+	ServerAddress     string `env:"ADDRESS"`
+	LogLevel          string `env:"LOG_LEVEL"`
+	AppEnv            string `env:"APP_ENV"`
+	Key               string `env:"KEY"`
+	RateLimit         uint   `env:"RATE_LIMIT"`
+	CryptoKey         string `env:"CRYPTO_KEY"`
+	GRPCServerAddress string `env:"GRPC_ADDRESS"`
+	EnableGRPC        bool   `env:"ENABLE_GRPC"`
 }
 
 func NewAgentConfig() (*AgentConfig, error) {
@@ -58,6 +60,12 @@ func NewAgentConfig() (*AgentConfig, error) {
 	if config.CryptoKey == "" {
 		config.CryptoKey = defaultConfig.CryptoKey
 	}
+	if config.GRPCServerAddress == "" {
+		config.GRPCServerAddress = defaultConfig.GRPCServerAddress
+	}
+	if !config.EnableGRPC {
+		config.EnableGRPC = defaultConfig.EnableGRPC
+	}
 
 	if err := env.Parse(config); err != nil {
 		return nil, fmt.Errorf("config.NewAgentConfig: parsing environment variables: %w", err)
@@ -77,6 +85,8 @@ func (c *AgentConfig) parseFlags() error {
 	fs.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
 	fs.UintVar(&c.RateLimit, "l", c.RateLimit, "Rate limit for concurrent requests")
 	fs.StringVar(&c.CryptoKey, "crypto-key", c.CryptoKey, "Path to public key file for encryption")
+	fs.StringVar(&c.GRPCServerAddress, "grpc-address", c.GRPCServerAddress, "gRPC server address")
+	fs.BoolVar(&c.EnableGRPC, "enable-grpc", c.EnableGRPC, "Enable gRPC transport")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		return fmt.Errorf("config.AgentConfig.parseFlags: %w", err)
