@@ -27,6 +27,7 @@ type ServerDefaultConfig struct {
 	FileStoragePath string `json:"file_storage_path"`
 	Restore         bool   `json:"restore"`
 	DatabaseDSN     string `json:"database_dsn"`
+	TrustedSubnet   string `json:"trusted_subnet"`
 }
 
 func NewAgentDefaultConfig(configPath string) (*AgentDefaultConfig, error) {

@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 
@@ -134,9 +135,15 @@ func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error creating request: %w", err)
 	}
 
+	realIP, err := getRealIPAddress()
+	if err != nil {
+		return fmt.Errorf("metric.Metrics.SendMetricsBatch: error getting real IP address: %w", err)
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Accept-Encoding", "gzip")
+	req.Header.Set("X-Real-IP", realIP.String())
 
 	if hashHeaderValue != "" {
 		req.Header.Set("HashSHA256", hashHeaderValue)
@@ -157,4 +164,42 @@ func (m *Metrics) SendMetricsBatch(metrics model.Metrics) error {
 	}
 
 	return nil
+}
+
+func getRealIPAddress() (net.IP, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, err
+	}
+
+	var l []net.IP
+	var p []net.IP
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok {
+			if ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				l = append(l, ipnet.IP)
+				continue
+			}
+
+			if ipnet.IP.IsPrivate() && ipnet.IP.To4() != nil {
+				p = append(p, ipnet.IP)
+				continue
+			}
+
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP, nil
+			}
+		}
+	}
+
+	if len(p) > 0 {
+		return p[0], nil
+	}
+
+	if len(l) > 0 {
+		return l[0], nil
+	}
+
+	return nil, nil
 }

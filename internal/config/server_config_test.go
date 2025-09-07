@@ -12,7 +12,7 @@ import (
 func TestNewServerConfig(t *testing.T) {
 	oldArgs := os.Args
 	oldEnv := map[string]string{}
-	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV", "DATABASE_DSN"} {
+	for _, env := range []string{"ADDRESS", "LOG_LEVEL", "APP_ENV", "DATABASE_DSN", "TRUSTED_SUBNET"} {
 		oldEnv[env] = os.Getenv(env)
 	}
 
@@ -47,6 +47,7 @@ func TestNewServerConfig(t *testing.T) {
 				LogLevel:      "info",
 				AppEnv:        "development",
 				DatabaseDSN:   "",
+				TrustedSubnet: "",
 			},
 		},
 		{
@@ -58,6 +59,7 @@ func TestNewServerConfig(t *testing.T) {
 				LogLevel:      "info",
 				AppEnv:        "development",
 				DatabaseDSN:   "",
+				TrustedSubnet: "",
 			},
 		},
 		{
@@ -69,16 +71,30 @@ func TestNewServerConfig(t *testing.T) {
 				LogLevel:      "info",
 				AppEnv:        "development",
 				DatabaseDSN:   "postgres://testuser:testpass@testhost:5432/testdb?sslmode=disable",
+				TrustedSubnet: "",
+			},
+		},
+		{
+			name: "trusted subnet command line argument",
+			args: []string{"test", "-t", "172.16.0.0/16"},
+			expected: &ServerConfig{
+				ConfigPath:    "../../configs/server.json",
+				ServerAddress: "localhost:8080",
+				LogLevel:      "info",
+				AppEnv:        "development",
+				DatabaseDSN:   "",
+				TrustedSubnet: "172.16.0.0/16",
 			},
 		},
 		{
 			name: "environment variables",
 			args: []string{"test"},
 			envs: map[string]string{
-				"ADDRESS":      "localhost:7070",
-				"LOG_LEVEL":    "debug",
-				"APP_ENV":      "test",
-				"DATABASE_DSN": "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				"ADDRESS":        "localhost:7070",
+				"LOG_LEVEL":      "debug",
+				"APP_ENV":        "test",
+				"DATABASE_DSN":   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				"TRUSTED_SUBNET": "192.168.1.0/24",
 			},
 			expected: &ServerConfig{
 				ConfigPath:    "../../configs/server.json",
@@ -86,16 +102,18 @@ func TestNewServerConfig(t *testing.T) {
 				LogLevel:      "debug",
 				AppEnv:        "test",
 				DatabaseDSN:   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				TrustedSubnet: "192.168.1.0/24",
 			},
 		},
 		{
 			name: "environment variables override flags",
 			args: []string{"test", "-a", "localhost:9090", "-d", "postgres://flaguser:flagpass@flaghost:5432/flagdb?sslmode=disable"},
 			envs: map[string]string{
-				"ADDRESS":      "localhost:7070",
-				"LOG_LEVEL":    "debug",
-				"APP_ENV":      "test",
-				"DATABASE_DSN": "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				"ADDRESS":        "localhost:7070",
+				"LOG_LEVEL":      "debug",
+				"APP_ENV":        "test",
+				"DATABASE_DSN":   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				"TRUSTED_SUBNET": "10.0.0.0/8",
 			},
 			expected: &ServerConfig{
 				ConfigPath:    "../../configs/server.json",
@@ -103,6 +121,7 @@ func TestNewServerConfig(t *testing.T) {
 				LogLevel:      "debug",
 				AppEnv:        "test",
 				DatabaseDSN:   "postgres://envuser:envpass@envhost:5432/envdb?sslmode=disable",
+				TrustedSubnet: "10.0.0.0/8",
 			},
 		},
 		{
@@ -140,6 +159,7 @@ func TestNewServerConfig(t *testing.T) {
 				assert.Equal(t, tt.expected.LogLevel, config.LogLevel)
 				assert.Equal(t, tt.expected.AppEnv, config.AppEnv)
 				assert.Equal(t, tt.expected.DatabaseDSN, config.DatabaseDSN)
+				assert.Equal(t, tt.expected.TrustedSubnet, config.TrustedSubnet)
 			}
 		})
 	}
