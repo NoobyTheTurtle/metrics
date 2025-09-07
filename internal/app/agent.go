@@ -32,15 +32,31 @@ func StartAgent() error {
 	}
 	defer l.Sync()
 
-	var encrypter metric.Encrypter
-	if c.CryptoKey != "" {
-		encrypter, err = cryptoutil.NewPublicKeyProvider(c.CryptoKey)
+	var metrics *metric.Metrics
+	if c.EnableGRPC {
+		l.Info("Using gRPC transport for metrics")
+		grpcTransport, err := metric.NewGRPCTransport(c.GRPCServerAddress, l)
 		if err != nil {
-			return fmt.Errorf("app.StartAgent: failed to create encrypter: %w", err)
+			return fmt.Errorf("app.StartAgent: failed to create gRPC transport: %w", err)
 		}
+		defer func() {
+			if closeErr := grpcTransport.Close(); closeErr != nil {
+				l.Error("Failed to close gRPC transport: %v", closeErr)
+			}
+		}()
+		metrics = metric.NewMetricsWithTransport(l, grpcTransport)
+	} else {
+		l.Info("Using HTTP transport for metrics")
+		var encrypter metric.Encrypter
+		if c.CryptoKey != "" {
+			encrypter, err = cryptoutil.NewPublicKeyProvider(c.CryptoKey)
+			if err != nil {
+				return fmt.Errorf("app.StartAgent: failed to create encrypter: %w", err)
+			}
+		}
+		httpTransport := metric.NewHTTPTransport(c.ServerAddress, !isDev, c.Key, encrypter, l)
+		metrics = metric.NewMetricsWithTransport(l, httpTransport)
 	}
-
-	metrics := metric.NewMetrics(c.ServerAddress, l, !isDev, c.Key, encrypter)
 
 	metricCollector := collector.NewCollector(metrics, l, c.PollInterval)
 	gopsutilCollector := collector.NewGopsutilCollector(metrics, l, c.PollInterval)

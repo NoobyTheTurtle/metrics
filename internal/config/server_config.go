@@ -21,6 +21,11 @@ type ServerConfig struct {
 	Restore         bool   `env:"RESTORE"`
 
 	DatabaseDSN string `env:"DATABASE_DSN"`
+
+	TrustedSubnet string `env:"TRUSTED_SUBNET"`
+
+	GRPCServerAddress string `env:"GRPC_ADDRESS"`
+	EnableGRPC        bool   `env:"ENABLE_GRPC"`
 }
 
 func NewServerConfig() (*ServerConfig, error) {
@@ -64,6 +69,15 @@ func NewServerConfig() (*ServerConfig, error) {
 	if config.DatabaseDSN == "" {
 		config.DatabaseDSN = defaultConfig.DatabaseDSN
 	}
+	if config.TrustedSubnet == "" {
+		config.TrustedSubnet = defaultConfig.TrustedSubnet
+	}
+	if config.GRPCServerAddress == "" {
+		config.GRPCServerAddress = defaultConfig.GRPCServerAddress
+	}
+	if !config.EnableGRPC {
+		config.EnableGRPC = defaultConfig.EnableGRPC
+	}
 
 	if err := env.Parse(config); err != nil {
 		return nil, fmt.Errorf("config.NewServerConfig: parsing environment variables: %w", err)
@@ -84,6 +98,9 @@ func (c *ServerConfig) parseFlags() error {
 	fs.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "PostgreSQL DSN")
 	fs.StringVar(&c.Key, "k", c.Key, "Secret key for hashing")
 	fs.StringVar(&c.CryptoKey, "crypto-key", c.CryptoKey, "Path to private key file for decryption")
+	fs.StringVar(&c.TrustedSubnet, "t", c.TrustedSubnet, "Trusted subnet in CIDR notation")
+	fs.StringVar(&c.GRPCServerAddress, "grpc-address", c.GRPCServerAddress, "gRPC server address")
+	fs.BoolVar(&c.EnableGRPC, "enable-grpc", c.EnableGRPC, "Enable gRPC server")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		return fmt.Errorf("config.ServerConfig.parseFlags: %w", err)

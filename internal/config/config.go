@@ -7,26 +7,31 @@ import (
 )
 
 type AgentDefaultConfig struct {
-	ServerAddress  string `json:"server_address"`
-	LogLevel       string `json:"log_level"`
-	AppEnv         string `json:"app_env"`
-	PollInterval   uint   `json:"poll_interval"`
-	ReportInterval uint   `json:"report_interval"`
-	Key            string `json:"key"`
-	RateLimit      uint   `json:"rate_limit"`
-	CryptoKey      string `json:"crypto_key"`
+	ServerAddress     string `json:"server_address"`
+	LogLevel          string `json:"log_level"`
+	AppEnv            string `json:"app_env"`
+	PollInterval      uint   `json:"poll_interval"`
+	ReportInterval    uint   `json:"report_interval"`
+	Key               string `json:"key"`
+	RateLimit         uint   `json:"rate_limit"`
+	CryptoKey         string `json:"crypto_key"`
+	GRPCServerAddress string `json:"grpc_server_address"`
+	EnableGRPC        bool   `json:"enable_grpc"`
 }
 
 type ServerDefaultConfig struct {
-	ServerAddress   string `json:"server_address"`
-	LogLevel        string `json:"log_level"`
-	AppEnv          string `json:"app_env"`
-	Key             string `json:"key"`
-	CryptoKey       string `json:"crypto_key"`
-	StoreInterval   uint   `json:"store_interval"`
-	FileStoragePath string `json:"file_storage_path"`
-	Restore         bool   `json:"restore"`
-	DatabaseDSN     string `json:"database_dsn"`
+	ServerAddress     string `json:"server_address"`
+	LogLevel          string `json:"log_level"`
+	AppEnv            string `json:"app_env"`
+	Key               string `json:"key"`
+	CryptoKey         string `json:"crypto_key"`
+	StoreInterval     uint   `json:"store_interval"`
+	FileStoragePath   string `json:"file_storage_path"`
+	Restore           bool   `json:"restore"`
+	DatabaseDSN       string `json:"database_dsn"`
+	TrustedSubnet     string `json:"trusted_subnet"`
+	GRPCServerAddress string `json:"grpc_server_address"`
+	EnableGRPC        bool   `json:"enable_grpc"`
 }
 
 func NewAgentDefaultConfig(configPath string) (*AgentDefaultConfig, error) {
