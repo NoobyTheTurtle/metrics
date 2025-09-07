@@ -17,24 +17,26 @@ import (
 // Router управляет HTTP маршрутизацией и обработчиками для сервера метрик.
 // Объединяет обработчики разных типов (JSON, HTML, plain text).
 type Router struct {
-	router       chi.Router
-	storage      MetricStorage
-	logger       RouterLogger
-	decrypter    Decrypter
-	pingHandler  *ping.Handler
-	htmlHandler  *html.Handler
-	plainHandler *plain.Handler
-	jsonHandler  *json.Handler
-	serverKey    string
+	router        chi.Router
+	storage       MetricStorage
+	logger        RouterLogger
+	decrypter     Decrypter
+	pingHandler   *ping.Handler
+	htmlHandler   *html.Handler
+	plainHandler  *plain.Handler
+	jsonHandler   *json.Handler
+	serverKey     string
+	trustedSubnet string
 }
 
-func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, serverKey string, decrypter Decrypter) *Router {
+func NewRouter(storage MetricStorage, logger RouterLogger, dbClient DBPinger, serverKey string, decrypter Decrypter, trustedSubnet string) *Router {
 	r := &Router{
-		router:    chi.NewRouter(),
-		storage:   storage,
-		logger:    logger,
-		serverKey: serverKey,
-		decrypter: decrypter,
+		router:        chi.NewRouter(),
+		storage:       storage,
+		logger:        logger,
+		serverKey:     serverKey,
+		decrypter:     decrypter,
+		trustedSubnet: trustedSubnet,
 	}
 
 	r.htmlHandler = html.NewHandler(storage)
@@ -72,6 +74,7 @@ func (r *Router) setupRoutes() {
 
 	// JSON handlers
 	r.router.Group(func(router chi.Router) {
+		router.Use(middleware.TrustedSubnetMiddleware(r.trustedSubnet, r.logger))
 		router.Use(middleware.ContentTypeMiddleware(json.ContentTypeValue))
 		router.Use(middleware.DecryptMiddleware(r.decrypter))
 		router.Use(middleware.GzipMiddleware)

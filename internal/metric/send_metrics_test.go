@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -88,6 +89,12 @@ func TestMetrics_SendMetrics(t *testing.T) {
 				assert.Equal(t, "gzip", r.Header.Get("Accept-Encoding"))
 				assert.Equal(t, http.MethodPost, r.Method)
 				assert.Equal(t, "/updates/", r.URL.Path)
+
+				xRealIP := r.Header.Get("X-Real-IP")
+				assert.NotEmpty(t, xRealIP, "X-Real-IP header should be present")
+
+				parsedIP := net.ParseIP(xRealIP)
+				assert.NotNil(t, parsedIP, "X-Real-IP should be a valid IP address")
 
 				var body []byte
 				var err error
@@ -217,6 +224,12 @@ func TestSendMetricsBatch(t *testing.T) {
 				assert.Equal(t, http.MethodPost, r.Method)
 				assert.Equal(t, "/updates/", r.URL.Path)
 
+				xRealIP := r.Header.Get("X-Real-IP")
+				assert.NotEmpty(t, xRealIP, "X-Real-IP header should be present")
+
+				parsedIP := net.ParseIP(xRealIP)
+				assert.NotNil(t, parsedIP, "X-Real-IP should be a valid IP address")
+
 				reader, err := gzip.NewReader(r.Body)
 				assert.NoError(t, err)
 
@@ -310,6 +323,12 @@ func TestSendMetricsBatch_Success(t *testing.T) {
 		assert.Equal(t, "gzip", r.Header.Get("Accept-Encoding"))
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "/updates/", r.URL.Path)
+
+		xRealIP := r.Header.Get("X-Real-IP")
+		assert.NotEmpty(t, xRealIP, "X-Real-IP header should be present")
+
+		parsedIP := net.ParseIP(xRealIP)
+		assert.NotNil(t, parsedIP, "X-Real-IP should be a valid IP address")
 
 		reader, err := gzip.NewReader(r.Body)
 		require.NoError(t, err)
@@ -735,4 +754,40 @@ func TestSendMetricsBatch_ResponseReadError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "could not read body")
+}
+
+func TestGetRealIPAddress(t *testing.T) {
+	tests := []struct {
+		name        string
+		expectError bool
+		expectIP    bool
+	}{
+		{
+			name:        "should return valid IP address",
+			expectError: false,
+			expectIP:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ip, err := getRealIPAddress()
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Nil(t, ip)
+			} else {
+				assert.NoError(t, err)
+				if tt.expectIP {
+					assert.NotNil(t, ip)
+					assert.NotEqual(t, "127.0.0.1", ip.String())
+					assert.NotEqual(t, "::1", ip.String())
+
+					assert.True(t, ip.To4() != nil, "Should be valid IPv4 address")
+				} else {
+					assert.Nil(t, ip)
+				}
+			}
+		})
+	}
 }

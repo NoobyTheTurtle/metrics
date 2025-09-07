@@ -56,7 +56,7 @@ func StartServer(ctx context.Context) error {
 		}
 	}
 
-	router := handler.NewRouter(metricStorage, log, dbClient, c.Key, decrypter)
+	router := handler.NewRouter(metricStorage, log, dbClient, c.Key, decrypter, c.TrustedSubnet)
 
 	server := &http.Server{
 		Addr:    c.ServerAddress,
